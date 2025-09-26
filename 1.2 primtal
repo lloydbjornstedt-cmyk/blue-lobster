@@ -1,0 +1,70 @@
+""""
+inlämning 1 uppgift 2
+skapad 13/9  
+senaste uppdatering 14/9 - ändra primtalfaktoriseringen 
+
+skapa ett program som utvärderar primtal 
+
+
+steg 1
+p är listan som sparar alla faktorer
+primtalsfunktionen append:ar alla i som jämt delar n till p
+for loop för att iterera alla möjliga faktorer 
+while loopen kan registrera om en faktor upprepas genom kravet x%i == 0
+faktorn i divideras bort 
+
+steg 2
+lagrar n:s värde i m för att bividera bort faktorer samtidigt som värdet på n bevaras 
+
+steg 3
+kollar om p har några element för att avgöra om n det är ett primtal 
+
+
+
+"""
+
+#steg 1
+p = []
+
+def primtal(x): 
+    for i in range(2,x):
+        while x%i == 0:
+            p.append(i)
+            x = x//i
+    print(p)
+
+#steg 2
+n = int(input("n = "))
+
+
+#steg 3
+primtal(n)
+
+if len(p) != 0:
+    print(n,"är inte ett primtal")
+else:
+    print(n,"är ett primtal")
+
+
+
+
+""""
+
+tal = [2]
+for z in range(3,101,2):
+    if all(z%y!=0 for y in range(3,z,2)):
+        tal.append(z)
+
+print(tal)
+"""
+
+
+kuk = []
+
+import sympy.ntheory as nt
+
+for b in range(1,101):
+    if nt.isprime(b) == True:
+        kuk.append(b)
+
+print(kuk)
