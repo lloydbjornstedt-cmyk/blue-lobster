@@ -1,7 +1,9 @@
 """"
 inlämning 1 uppgift 2
 skapad 13/9  
-senaste uppdatering 14/9 - ändra primtalfaktoriseringen 
+senaste uppdatering 
+14/9 - ändra primtalfaktoriseringen 
+27/9 - failsafe med specialfallen då användaren anger n=1 eller n<=0
 
 skapa ett program som utvärderar primtal 
 
@@ -10,21 +12,18 @@ steg 1
 p är listan som sparar alla faktorer
 primtalsfunktionen append:ar alla i som jämt delar n till p
 for loop för att iterera alla möjliga faktorer 
-while loopen kan registrera om en faktor upprepas genom kravet x%i == 0
-faktorn i divideras bort 
+while loopen dividerar bort alla faktorer  
 
 steg 2
-lagrar n:s värde i m för att bividera bort faktorer samtidigt som värdet på n bevaras 
-
-steg 3
-kollar om p har några element för att avgöra om n det är ett primtal 
+användaren får välja n
+kollar om p har några element för att avgöra om n har faktorer
 
 
 
 """
-
 #steg 1
 p = []
+q = []
 
 def primtal(x): 
     for i in range(2,x):
@@ -33,23 +32,35 @@ def primtal(x):
             x = x//i
     print(p)
 
+
+
+def primtal_lista(a): 
+    for k in range(3,a+1,2):
+        q.append(k)
+
+    print(q)
+    
+
+
 #steg 2
 n = int(input("n = "))
 
+if n==1:
+    print("1 är inte ett primtal")
 
-#steg 3
-primtal(n)
+elif n != 1:
+    primtal(n)
 
-if len(p) != 0:
-    print(n,"är inte ett primtal")
-else:
-    print(n,"är ett primtal")
+    if len(p) != 0:
+        print(n,"är inte ett primtal")
+    else:
+        print(n,"är ett primtal")
 
+primtal_lista(100)
 
+#inte min kod men den fungerar så bra
 
-
-""""
-
+"""
 tal = [2]
 for z in range(3,101,2):
     if all(z%y!=0 for y in range(3,z,2)):
@@ -59,12 +70,4 @@ print(tal)
 """
 
 
-kuk = []
-
-import sympy.ntheory as nt
-
-for b in range(1,101):
-    if nt.isprime(b) == True:
-        kuk.append(b)
-
-print(kuk)
+    
