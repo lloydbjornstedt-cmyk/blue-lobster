@@ -3,7 +3,7 @@ inlämning 1 uppgift 2
 skapad 13/9  
 senaste uppdatering 
 14/9 - ändra primtalfaktoriseringen 
-27/9 - failsafe med specialfallen då användaren anger n=1 eller n<=0
+27/9 - failsafe med specialfallen då användaren anger n=1
 
 skapa ett program som utvärderar primtal 
 
@@ -33,15 +33,6 @@ def primtal(x):
     print(p)
 
 
-
-def primtal_lista(a): 
-    for k in range(3,a+1,2):
-        q.append(k)
-
-    print(q)
-    
-
-
 #steg 2
 n = int(input("n = "))
 
@@ -56,7 +47,11 @@ elif n != 1:
     else:
         print(n,"är ett primtal")
 
-primtal_lista(100)
+
+
+
+
+
 
 #inte min kod men den fungerar så bra
 
@@ -69,5 +64,3 @@ for z in range(3,101,2):
 print(tal)
 """
 
-
-    
