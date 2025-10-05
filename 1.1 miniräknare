@@ -1,7 +1,8 @@
 """ 
 inlämning 1 uppghift 1
 skapad 12/9 
-senaste uppdatering 13/9 - la till fakultetfunktionen 
+senaste uppdatering 
+13/9 - la till fakultetfunktionen 
 
 skapa en "miniräknare" där man kan välja räknesätt + fakultet samt två siffror
 
@@ -14,8 +15,8 @@ själva miniräknaren
 först väljer räknesätt och sen sifforna 
 
 övrig kommentar
-valde att använda siffror för att kommando istället för att skriva med bokstäver
-jag anser att det går fortare och minimerar risken för stavfel 
+valde att använda siffror för kommando istället för att skriva med bokstäver
+anser att det går fortare och minimerar nödvändiga failsafes genom att ta bort risken för stavfel 
 
 
 """
@@ -28,15 +29,15 @@ y = ["addition","subtraktion","multiplikation","division","fakultet"]
 y1 = ["+","-","×","÷","!"]
 
 
-def räkna(operation,tal1,tal2):
+def räkna(räknesätt,tal1,tal2):
     svar = 0
-    if operation == 1:
+    if räknesätt == 1:
         svar = tal1 + tal2
-    elif operation == 2:
+    elif räknesätt == 2:
         svar = tal1-tal2
-    elif operation == 3:
+    elif räknesätt == 3:
         svar = tal1*tal2
-    elif operation == 4:
+    elif räknesätt == 4:
         svar = tal1/tal2
     print(tal1,y1[val],tal2,"=",svar)
          
@@ -49,31 +50,29 @@ def fakultet(n):
 
 
 #steg 2
-print("")
-print("Tryck följande")
+print("\nTryck följande")
 for i in range(len(x)):
         print(x[i],"för", y[i])
-print("")
+print("\n")
 
 while fortsätta == 1:
     val = int(input("räknesätt: "))-1
     if val != 4:
         siffra1 = int(input("första talet: "))
         siffra2 = int(input("andra talet: "))
-        print("")
+        print("\n")
         räkna(val+1,siffra1,siffra2)
-        print("")
+        print("\n")
     elif val == 4:
         siffra3 = int(input("n = "))
-        print("")
+        print("\n")
         fakultet(siffra3)
-        print("")
+        print("\n")
 
-    print("1 för att fortsätta")
+    print("1 för att välja räknesätt igen")
     print("2 för att avsluta")
-    print("")
     fortsätta = int(input(" "))
-    print("")
+    print("\n")
   
 
 
