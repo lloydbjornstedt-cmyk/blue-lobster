@@ -1,86 +1,89 @@
 """"
 inlämning 1 uppgift 2
-skapad 13/9
-senaste uppdatering
+skapad 13/9 (allting 2025)
+skapare Lloyd Björnstedt
+senaste uppdatering:
 14/9 - primtal_faktorer avbryts när n=1 (alla faktorer har dividerats bort) + kollar om n är jämt sen itererar bara bland udda tal
 27/9 - failsafe med specialfallen då användaren anger n<0 och n=1 + gjorde steg 2 mer användar vänlig
 29/9 - la till primtal_check samt dess användningar  
-2/10 - såg en YT video och hur man kunde göra nested if-satser enklare att läsa så jag snygga till lite i #steg 2
+5/10 - optimera lite i steg 3 med try + exept samt fixa lite med användar vänligheten 
+
 
 skapa ett program som utvärderar primtal
 
 
-steg 1
-primtal_faktorer append:ar alla i som jämt delar n till p, p är listan som sparar alla faktorer
-primtal_check avgör om n har några faktorer, n är ett primtal = return True eller n är inte ett primtal = return False 
-for loop för att iterera alla möjliga faktorer och while loopen dividerar bort alla faktorer
+steg 1 
+deklarerar nödvändiga funktioner och variabler i funktionerna
 
-steg 2
-användaren får välja n
-tar hänsyn till special fallen
-kollar om p har några element för att avgöra om n har faktorer
+steg 2 
+använder funktionerna för att unvardera användarens input
 
-steg 3
-2 är redan i q då for-loopen bara itererar udda tal (för interera färre omgångar)
-lägger till j i listan q om primtal_check är True 
+steg 3 
+ger en lista på alla primtal upp till 100
 
 
 
 """
 #steg 1
+def primtal_check(x): #primtal_check avgör om x har några faktorer, x är ett primtal = return True eller x är INTE ett primtal = return False 
+    if x%2==0 and x!=2 or x==1:
+        return False
 
-def primtal_check(x):
-    if x > 1:
-        if x%2==0 and x/2 != 1:
+    for i in range(3,int(x**0.5)+1,2):
+        if x%i == 0:
             return False
 
-        for i in range(3,int(x**0.5)+1,2):
-            if x%i == 0:
-                return False
-    else:
-        return False
-    
     return True
 
 
-def primtal_faktorer(x):
-    p = []
-    while x%2 == 0:
-        p.append(2)
-        x = x//2
+def primtal_faktorer(x): #primtal_faktorer append:ar alla i som jämt delar n till p, p är listan som sparar alla faktorer
+    faktorer = [] 
+    while x%2 == 0: #kollar först om x är jämt  
+        faktorer.append(2)
+        x = x//2 #dividerar bort faktorer
     
-    for i in range(3,int(x**0.5)+1,2):
+    for i in range(3,int(x**0.5)+1,2): #for-loop för att iterera alla udda faktorer och while-loopen loopar ifall samma faktor upprepas
         while x%i == 0:
-            p.append(i)
-            x = x//i
+            faktorer.append(i)
+            x = x//i #dividerar bort faktorer
 
-    if primtal_check(x):
-        p.append(x)
+    if primtal_check(x): #om talet som är kvar efter for-loopen är ett primtal läggs talen till i faktorer-listan
+        faktorer.append(x)
 
-    return p
+    if len(faktorer)!=0: #ger ingen lista om ett icke primtal inte har faktorer (enbart för x=1)
+        return faktorer
+    else:
+        pass
+    
 
 
 #steg 2
-print("\n")
-print("ange ett positivt heltal")
-n = input("n = ")
+print("\n\nange ett positivt heltal")
 
-if n.isnumeric() == False or int(n) == 0:
-    print(n,"är inte ett positivt heltal, försök igen\n")
+#användaren får välja n och kollar om input är giltigt
+try:
+    n = int(input("n = ")) 
+
+except ValueError: 
+    print("ange ett positivt heltal, försök igen\n")
 
 else:
-    if primtal_check(int(n)):
-        print(n, "är ett primtal\n")
+    if n <= 0: #tar hänsyn till special fallet x<0
+        print("ange ett positivt heltal, försök igen\n")
+   
+    else: #gör själva utvärderingen av input
+        if primtal_check(n):
+            print(n, "är ett primtal\n")
 
-    else:
-        print(n,"är inte ett primtal")
-        print("primtalsfaktorerna är:",primtal_faktorer(int(n)),"\n")
+        else:
+            print(n,"är inte ett primtal")
+            print("primtalsfaktorerna för",n,"är",primtal_faktorer(n),"\n")
 
     
 # steg 3
-q = [2]
+primtal_lista = [2] #2 är redan i listan då for-loopen bara itererar udda tal (för interera färre omgångar)
 for j in range(3, 101, 2):
     if primtal_check(j):
-        q.append(j)
+        primtal_lista.append(j) 
 print("alla primtal upp till 100")
-print(q,"\n")
+print(primtal_lista,"\n")

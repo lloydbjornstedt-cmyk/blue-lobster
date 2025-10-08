@@ -1,24 +1,27 @@
 """ 
 inlämning 1 uppghift 1
-skapad 12/9 
-senaste uppdatering 
+skapad 12/9 (allting 2025)
+skapare Lloyd Björnstedt
+senaste uppdatering:
 13/9 - la till fakultetfunktionen 
 4/10 - failsafe hanterin om användaren anger str (str och inte int för fakultet) + fortsätta_check funktionen 
 5/10 - optimetra steg 2 och alla funktioner (minska mängden variabler + minska mängden if-else-satser)
 
 
-skapa en "miniräknare" där man kan välja räknesätt + fakultet samt två siffror
+skapa en miniräknare där man kan välja räknesätt + fakultet samt två siffror
 
 
 steg 1 
-x innehåller alla namn och tecken 
-beräkna-funktionen väljer tal och sen beräknar 
-fakultet-funktionen förklarar sig själv
-fortsätta_check avgör om programmet ska förtsätta och köras eller inte 
+deklarerar en nödvändig lista 
 
-steg 2
-själva miniräknaren 
-först väljer räknesätt och sen sifforna 
+steg 2 
+deklarerar nödvändiga funktioner 
+
+steg 3 
+while-loop för att köra programmet tills fortsätta_check är False
+
+steg 4
+själva miniräknaren
 
 övrig kommentar
 valde att använda siffror för att kommando istället för att skriva med bokstäver
@@ -29,32 +32,32 @@ jag anser att det går fortare och minimerar risken för stavfel
 
 
 #steg 1
-x = [1,2,3,4,5,"addition","subtraktion","multiplikation","division","fakultet", "+","-","×","÷","!","termen","termen","faktorn","täljare","nämnare","första","andra"]
+x = ["addition","subtraktion","multiplikation","division","fakultet", "+","-","×","÷","!","första termen","första termen","första faktorn","täljaren","andra termen","andra termen","andra faktorn","nämnaren"]
+# x innehåller alla namn och tecken i en lista för senare användnig 
 
-
-def beräkna(val):
-    #väljer tal 
+#steg2
+def beräkna(val): #beräkna-funktionen väljer tal och sen beräknar 
+    #väljer tal och kollar om input är giltigt 
     svar = 0
     print("\nange två tal")
-    if val == 4:
-        print("OBS! division med 0 är odefinierat\n")
 
-    tal = []
+    if val == 4:
+        print("OBS! division med 0 är odefinierat\n") 
+
+    tal = [] 
     for k in range(2):
-        print("välj",x[20+k],x[14+val])
         try:
-            tal_input = int(input(": "))
+            tal_input = int(input("välj {}: ". format(x[val+9+(4*k)]))) #x[val+9+(4*k)] ger rätt begrepp för räknesättet
             tal.append(tal_input)
         except ValueError:
-            print("-----------------------------------------\nange input enligt instruktionerna ovan\n-----------------------------------------\n")
+            print("\n-----------------------------------------\nange input enligt instruktionerna ovan\n-----------------------------------------\n")
             break
-
-
-    #beräkningar
+ 
+    #beräkningar och ger svar
     if len(tal)==2:
         if val == 1:
             svar = tal[0] + tal[1]
-                
+                            
         elif val == 2:
             svar = tal[0] - tal[1]
 
@@ -65,14 +68,14 @@ def beräkna(val):
             try:
                 svar = tal[0]/tal[1]
 
-            except ZeroDivisionError:
-                svar = "odefinierad"
+            except ZeroDivisionError: 
+                svar = "odefinierat"
 
-        print("\n",tal[0],x[(val)+9],tal[1],"=",svar,"\n")
+        print("\n",tal[0],x[val+4],tal[1],"=",svar,"\n") #x[val+9] ger rätt tecken för räknesättet 
 
          
-def fakultet():
-    svar_f = 1
+def fakultet(): #fakultet-funktionen förklarar sig själv
+    svar_f = 1 #svaret är 1 för att det minsta värdet fakultet kan anta är 1
     try:
         tal = int(input("ange ett positivt heltal: "))
         print("\n")
@@ -82,7 +85,7 @@ def fakultet():
 
     else:
         if tal >= 0:    
-            for p in range(1,int(tal)+1):
+            for p in range(1,tal+1):
                 svar_f = svar_f*p
             print(tal,"! =",svar_f) 
             print("\n")
@@ -91,7 +94,7 @@ def fakultet():
             print("-----------------------------------------\nange input enligt instruktionerna ovan\n-----------------------------------------\n") 
    
            
-def fortsätta_check():
+def fortsätta_check(): #fortsätta_check avgör om programmet ska förtsätta och köras eller inte 
     print("1 för att fortsätta\n2 för att avsluta \n")
     while True:
         try:
@@ -112,19 +115,24 @@ def fortsätta_check():
                 print("\n-----------------------------------------\nange input enligt instruktionerna\n1 för att fortsätta\n2 för att avsluta\n-----------------------------------------\n") 
 
 
-#steg 2
-while True:
+#steg 3 
+while True: 
+    #själva "menyn" med isntruktioner för val av räknesätt  
     print("\n------------------------------------------\nTryck följande för att välja räknesätt")
     for i in range(5):
-        print(x[i],"för", x[i+5])
+        print(i+1,"för", x[i]) #i+1 visar nödvändig input och x[i] ger räknesätt 
     print("\n")
 
+
+#steg 4
+    #först väljer räknesätt och avgör om input är giltigt
     try:
-        val = int(input("räknesätt: "))
+        val = int(input("räknesätt: ")) 
 
     except ValueError:
         print("-----------------------------------------\nange input enligt instruktionerna ovan\n-----------------------------------------\n") 
 
+    #talen väljs i beräkna-funktionen 
     else:
         if 1 <= val <= 4:
             beräkna(val)
