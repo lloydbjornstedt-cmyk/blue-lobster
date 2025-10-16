@@ -1,5 +1,5 @@
 
-
+# uppgift 1
 def kub(x):
     return x**3
 
@@ -10,17 +10,14 @@ for i in range(1,20,2):
 print(sum)
 
 
+# uppgift 2
+def linjen(x1,y1,x2,y2):
+    print((y1-y2)/(x1-x2),"x +",y1 - (((y1-y2)/(x1-x2))*x1))
 
-def kxm(x1,y1,x2,y2):
-    k = (y1-y2)/(x1-x2)
-    m = y1 - (k*x1)
-
-    print(k,"x +",m)
-
-kxm(2,3,3,4)
+linjen(0,-2,1,1)
 
 
-
+# uppgift 3
 b = int(input("basen = "))
 h = int(input("höjden = "))
 
