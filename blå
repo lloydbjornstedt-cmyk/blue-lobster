@@ -1,0 +1,34 @@
+
+
+def kub(x):
+    return x**3
+
+sum = 0
+for i in range(1,20,2):
+    sum += kub(i)
+
+print(sum)
+
+
+
+def kxm(x1,y1,x2,y2):
+    k = (y1-y2)/(x1-x2)
+    m = y1 - (k*x1)
+
+    print(k,"x +",m)
+
+kxm(2,3,3,4)
+
+
+
+b = int(input("basen = "))
+h = int(input("höjden = "))
+
+def area(b,h):
+    return b*h
+
+def omkrets(b,h):
+    return (2*b)+(2*h)
+
+print("\narean är",area(b,h), "a.e.")
+print("omkretsen är",omkrets(b,h),"l.e.\n")
