@@ -2,8 +2,8 @@
 # VARIABLER och LISTOR
 # -----------------------
 
-
 import random
+
 
 kortlek = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29,
            30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56,
@@ -11,9 +11,11 @@ kortlek = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20
 
 sakhög = []
 
+
+
 alla_poäng = [0, 0, 0, 0]
 
-wincon = 0
+#wincon = 0
 
 player_1 = []
 player_2 = []
@@ -29,8 +31,19 @@ antal_spelare = len(spelare_namn)
 aktiva_spelare = alla_spelare[:antal_spelare]
 aktiva_poäng = alla_poäng[:antal_spelare]
 
+
+
 gi_min = [1, 7, 13, 19, 25, 31, 37, 43, 49, 55]
 gi_max = [6, 12, 18, 24, 30, 36, 42, 48, 54, 60]
+
+
+
+alla_vinster = [0, 0, 0, 0]
+aktiva_vinster = alla_vinster[:antal_spelare]
+
+alla_racko = [0, 0, 0, 0]
+aktiva_racko = alla_racko[:antal_spelare]
+
 
 
 # -------------------
@@ -38,23 +51,28 @@ gi_max = [6, 12, 18, 24, 30, 36, 42, 48, 54, 60]
 # -------------------
 
 
+
 def blanda_kort(hög):
     random.shuffle(hög)
     return hög
 
-
 def blanda_kort_igen():
+    behåll_kort = sakhög[-1]
+
+    for x in sakhög:
+        kortlek.append(x)
+
     sakhög.clear()
-    for i in range(1, 61):
-        kortlek.append(i)
+
     blanda_kort(kortlek)
-    sakhög.append(kortlek[0])
+    sakhög.append(behåll_kort), kortlek.remove(behåll_kort)
+
+    return kortlek and sakhög
 
 
 def visa_kort(hand):
     for kort in hand:
         print(10 - hand.index(kort), ":", kort)
-
 
 def kortutdelning(alla_spelare, lek, sakhög):
     blanda_kort(lek)
@@ -64,6 +82,17 @@ def kortutdelning(alla_spelare, lek, sakhög):
             spelare.append(kort)
     sakhög.append(lek.pop(0))
     return alla_spelare
+
+def nya_kortutdelning(spelare, lek, hög):
+    for k in range(len(spelare)):
+        spelare[k].clear()
+
+    lek.clear()
+    for i in range(1, 61):
+        lek.append(i)
+
+    hög.clear()
+    return lek and hög
 
 
 def poäng_bricka(spelare):
@@ -75,17 +104,15 @@ def poäng_bricka(spelare):
             break
     return poäng
 
-
 def Special_Racko(x):
     if x > 6:
         x = 6
     bonuspoäng = 50 * (2 ** (x - 3))
     return bonuspoäng
 
-
 def Räkna_Poäng(aktiva_poäng, spelare, aktiva_spelare):
     for tur in range(len(aktiva_spelare)):
-        #separat för spelaren som vann:
+        # separat för spelaren som vann:
         poäng = aktiva_poäng[tur]
         if aktiva_spelare[tur] == spelare:
             poäng += 25
@@ -102,7 +129,7 @@ def Räkna_Poäng(aktiva_poäng, spelare, aktiva_spelare):
                 poäng += Special_Racko(highest_consecutive)
         poäng += poäng_bricka(aktiva_spelare[tur])
         aktiva_poäng[tur] = poäng
-        return aktiva_poäng[tur]
+
 
 
 def spelrunda(spelare, kortlek, sakhög):
@@ -140,6 +167,7 @@ def spelrunda(spelare, kortlek, sakhög):
         print("")
 
 
+
 def intervall_check(spelare):
     godkända_kort = []
     for k in range(0, 10):
@@ -147,8 +175,8 @@ def intervall_check(spelare):
             godkända_kort.append(spelare[k])
         else:
             godkända_kort.append(False)
-    return godkända_kort
 
+    return godkända_kort
 
 def Adjust_Interval(approved_cards):
     approved_cards_stripped = []
@@ -198,25 +226,26 @@ def Adjust_Interval(approved_cards):
     return intervals
 
 
+
 def jarvis(godkända_kort, spelare):
     while True:
         # kollar för sakhögen
         if godkända_kort[0] == False and godkända_kort[1] == True and (sakhög[-1] <= spelare[1]):
             sakhög.append(spelare[0]), spelare.pop(0)
             spelare.insert(0, sakhög[-2])
-            print(sakhög[-2], 1, "sakhög 1")
+            # print(sakhög[-2],1,"sakhög 1")
             return spelare
 
         elif godkända_kort[0] == False and (sakhög[-1] <= Adjust_Interval(intervall_check(spelare))[0]):
             sakhög.append(spelare[0]), spelare.pop(0)
             spelare.insert(0, sakhög[-2])
-            print(sakhög[-2], 1, "sakhög 1.5")
+            # print(sakhög[-2],1,"sakhög 1.5")
             return spelare
 
         elif godkända_kort[9] == False and godkända_kort[8] == True and (spelare[8] < sakhög[-1]):
             sakhög.append(spelare[9]), spelare.pop(9)
             spelare.insert(9, sakhög[-2])
-            print(sakhög[-2], 10, "sakhög 2")
+            # print(sakhög[-2],10,"sakhög 2")
             return spelare
 
         for j in range(1, 10):
@@ -224,7 +253,7 @@ def jarvis(godkända_kort, spelare):
                                               Adjust_Interval(intervall_check(spelare))[j]):
                 sakhög.append(spelare[j]), spelare.pop(j)
                 spelare.insert(j, sakhög[-2])
-                print(sakhög[-2], j + 1, "sakhög 3")
+                # print(sakhög[-2],j+1,"sakhög 3")
                 return spelare
 
         # kollar kortleken
@@ -232,20 +261,20 @@ def jarvis(godkända_kort, spelare):
 
             sakhög.append(spelare[0]), spelare.pop(0)
             spelare.insert(0, kortlek[0]), kortlek.pop(0)
-            print(spelare[0], 1, "kortlek 1")
+            # print(spelare[0],1,"kortlek 1")
             return spelare
 
         elif godkända_kort[9] == False and godkända_kort[8] == True and (
                 kortlek[0] <= Adjust_Interval(intervall_check(spelare))[0]):
             sakhög.append(spelare[0]), spelare.pop(0)
             spelare.insert(0, kortlek[0])
-            print(spelare[0], 1, "kortlek 1.5")
+            # print(spelare[0],1,"kortlek 1.5")
             return spelare
 
         elif godkända_kort[9] == False and godkända_kort[8] == True and (spelare[8] <= kortlek[0]):
             sakhög.append(spelare[9]), spelare.pop(9)
             spelare.insert(9, kortlek[0]), kortlek.pop(0)
-            print(spelare[9], 10, "kortlek 2")
+            # print(spelare[9],10,"kortlek 2")
             return spelare
 
         for k in range(1, 10):
@@ -253,297 +282,219 @@ def jarvis(godkända_kort, spelare):
                                               Adjust_Interval(intervall_check(spelare))[j]):
                 sakhög.append(spelare[k]), spelare.pop(k)
                 spelare.insert(k, kortlek[0]), kortlek.pop(0)
-                print(spelare[k], k + 1, "kortlek 3")
+                # print(spelare[k],k+1,"kortlek 3")
                 return spelare
 
-        print("botten bytar ingen")
+        # print("botten bytar ingen")
         sakhög.append(kortlek[0]), kortlek.pop(0)
         return spelare
 
-
 def gi(godkända_kort, spelare):
-    for j in range(len(godkända_kort)):
+    # [0] < [1] sakhög
+    if godkända_kort[0] == False and godkända_kort[1] != False and (sakhög[-1] < spelare[1]):
+        godkända_kort.pop(0), godkända_kort.insert(0, sakhög[-1])
+        sakhög.append(spelare[0]), spelare.pop(0)
+        spelare.insert(0, sakhög[-2]), sakhög.pop(-2)
+        # print(sakhög[-1],1,"sakhög 1")
+        return spelare
+
+    # [8] < [9] sakhög
+    elif godkända_kort[9] == False and godkända_kort[8] != False and (sakhög[-1] > spelare[8]):
+        godkända_kort.pop(9), godkända_kort.insert(9, sakhög[-1])
+        sakhög.append(spelare[9]), spelare.pop(9)
+        spelare.insert(9, sakhög[-2]), sakhög.pop(-2)
+        # print(sakhög[-1],10,"sakhög 2")
+        return spelare
+
+    #kollar sakhögen
+    for j in range(len(spelare)):
         if godkända_kort[j] == False and gi_min[j] <= sakhög[-1] <= gi_max[j]:
             sakhög.append(spelare[j]), spelare.pop(j)
-            spelare.insert(j, sakhög[-2])
-            print(sakhög[-2], j + 1, "sakhög")
+            spelare.insert(j, sakhög[-2]), sakhög.pop(-2)
+            #print(sakhög[-1],j+1,"sakhög 3")
             return spelare
 
-    for k in range(len(godkända_kort)):
+    # [0] < [1] kortlek
+    if godkända_kort[0] == False and godkända_kort[1] != False and (kortlek[0] < spelare[1]):
+        godkända_kort.pop(0), godkända_kort.insert(0, kortlek[0])
+        sakhög.append(spelare[0]), spelare.pop(0)
+        spelare.insert(0, kortlek[0]), kortlek.pop(0)
+        # print(sakhög[-1],1,"kortlek 1")
+        return spelare
+
+    # [8] < [9] kortlek
+    elif godkända_kort[9] == False and godkända_kort[8] != False and (sakhög[-1] > spelare[8]):
+        godkända_kort.pop(9), godkända_kort.insert(9, sakhög[-1])
+        sakhög.append(spelare[9]), spelare.pop(9)
+        spelare.insert(9, kortlek[0]), kortlek.pop(0)
+        # print(sakhög[-1],10,"kortlek 2")
+        return spelare
+
+    #kollar kortleken
+    for k in range(len(spelare)):
         if godkända_kort[k] == False and gi_min[k] <= kortlek[0] <= gi_max[k]:
             sakhög.append(spelare[k]), spelare.pop(k)
             spelare.insert(k, kortlek[0]), kortlek.pop(0)
-            print(spelare[k], k + 1, "kortlek")
+            #print(spelare[k],k+1,"kortlek" 3)
             return spelare
 
-    print("botten byter ingen")
+    #print("botten byter inget")
     sakhög.append(kortlek[0]), kortlek.pop(0)
     return spelare
-
 
 def Petter(godkända_kort, spelare):
     j = 0
-    if godkända_kort[j] == False and gi_min[j] <= sakhög[-1] <= gi_max[j]:
+    #om kortet är godkänt kan den gå vidare
+    if godkända_kort[j]:
+        j += 1
+        #print(j)
+
+    #kollar sakhögen
+    elif godkända_kort[j] == False and gi_min[j] <= sakhög[-1] <= gi_max[j]:
         sakhög.append(spelare[j]), spelare.pop(j)
-        spelare.insert(j, sakhög[-2])
-        print(sakhög[-2], j + 1, "sakhög", j + 1)
+        spelare.insert(j, sakhög[-2]), sakhög.pop(-2)
+        #print(sakhög[-1],j+1,"sakhög")
         j += 1
         return spelare
 
+    #kollar kortleken
     elif godkända_kort[j] == False and gi_min[j] <= kortlek[0] <= gi_max[j]:
         sakhög.append(spelare[j]), spelare.pop(j)
         spelare.insert(j, kortlek[0]), kortlek.pop(0)
-        print(spelare[j], j + 1, "kortlek", j + 1)
+        #print(spelare[j],j+1,"kortlek")
         j += 1
         return spelare
 
-    print("botten byter ingen")
+    #print("botten byter inget")
     sakhög.append(kortlek[0]), kortlek.pop(0)
     return spelare
-
-
-def risk(godkända_kort, spelare):
-    while True:
-        # kollar för sakhögen
-        if godkända_kort[0] == False and godkända_kort[1] == True and (sakhög[-1] <= spelare[1]):
-            print(sakhög[-1], 1, "sakhög 1")
-            sakhög.append(spelare[0]), spelare.pop(0)
-            spelare.insert(0, sakhög[-2])
-            return False
-
-        elif godkända_kort[0] == False and (sakhög[-1] <= Adjust_Interval(intervall_check(spelare))[0]):
-            print(sakhög[-1], 1, "sakhög 1.5")
-            sakhög.append(spelare[0]), spelare.pop(0)
-            spelare.insert(0, sakhög[-2])
-            return False
-
-        elif godkända_kort[9] == False and godkända_kort[8] == True and (spelare[8] < sakhög[-1]):
-            print(sakhög[-1], 10, "sakhög 2")
-            sakhög.append(spelare[9]), spelare.pop(9)
-            spelare.insert(9, sakhög[-2])
-            return False
-
-        for k in range(0, 9):
-            if godkända_kort[k] != False and (godkända_kort[k] + 1) == sakhög[
-                -1]:  # om sakhögen är en mer än det som finns på godkännt index
-                sakhög.append(spelare[k + 1]), spelare.pop(k + 1)
-                spelare.insert((k + 1), sakhög[-2])
-            else:
-                continue
-
-        for m in range(1, 10):
-            if godkända_kort[k] != False and (godkända_kort[m] - 1) == sakhög[
-                -1]:  # om sakhögen är en mindre än det som finns på godkännt index
-                sakhög.append(spelare[m - 1]), spelare.pop(m - 1)
-                spelare.insert((m - 1), sakhög[-2])
-            else:
-                continue
-
-        for j in range(1, 10):
-            if godkända_kort[j] == False and (Adjust_Interval(intervall_check(spelare))[j - 1] < sakhög[-1] <=
-                                              Adjust_Interval(intervall_check(spelare))[j]):
-                print(sakhög[-1], j + 1, "sakhög 3")
-                sakhög.append(spelare[j]), spelare.pop(j)
-                spelare.insert(j, sakhög[-2])
-                return False
-
-        # kollar kortleken
-        if godkända_kort[0] == False and godkända_kort[1] == True and (kortlek[0] <= spelare[1]):
-            print(kortlek[0], 1, "kortlek 1")
-            sakhög.append(spelare[0]), spelare.pop(0)
-            spelare.insert(0, kortlek[0]), kortlek.pop(0)
-            return False
-
-        elif godkända_kort[9] == False and godkända_kort[8] == True and (
-                kortlek[0] <= Adjust_Interval(intervall_check(spelare))[0]):
-            print(sakhög[-1], 1, "kortlek 1.5")
-            sakhög.append(spelare[0]), spelare.pop(0)
-            spelare.insert(0, kortlek[0])
-            return False
-
-        elif godkända_kort[9] == False and godkända_kort[8] == True and (spelare[8] <= kortlek[0]):
-            print(kortlek[0], 10, "kortlek 2")
-            sakhög.append(spelare[9]), spelare.pop(9)
-            spelare.insert(9, kortlek[0]), kortlek.pop(0)
-            return False
-
-        for k in range(0, 9):
-            if godkända_kort[k] != False and (godkända_kort[k] + 1) == kortlek[
-                0]:  # om korthögen är en mer än det som finns på godkännt index
-                sakhög.append(spelare[k + 1]), spelare.pop(k + 1)
-                spelare.insert((k + 1), sakhög[-2])
-            else:
-                continue
-
-        for k in range(1, 10):
-            if godkända_kort[k] != False and (godkända_kort[k] - 1) == kortlek[
-                0]:  # om kortleken är en mindre än det som finns på godkännt index
-                sakhög.append(spelare[k - 1]), spelare.pop(k - 1)
-                spelare.insert((k - 1), sakhög[-2])
-
-        for k in range(1, 10):
-            if godkända_kort[k] == False and (Adjust_Interval(intervall_check(spelare))[j - 1] < kortlek[0] <=
-                                              Adjust_Interval(intervall_check(spelare))[j]):
-                print(kortlek[0], k + 1, "kortlek 3")
-                sakhög.append(spelare[k]), spelare.pop(k)
-                spelare.insert(k, kortlek[0]), kortlek.pop(0)
-                return False
-
-        print("botten byter inget", sakhög[-1], kortlek[0])
-        sakhög.append(kortlek[0]), kortlek.pop(0)
-        return False
-
 
 def högen(godkända_kort, spelare):
-    for j in range(len(godkända_kort)):
-        if godkända_kort[0] == False and godkända_kort[1] == True and (sakhög[-1] <= spelare[1]):
-            godkända_kort.pop(0), godkända_kort.insert(0, sakhög[-1])
-            sakhög.append(spelare[0]), spelare.pop(0)
-            spelare.insert(0, sakhög[-2])
-            print(sakhög[-2], 1, "sakhög 1")
-            return spelare
+    #om index 1 är rätt så räcker att index 0 < index 1 för att bli godkänd
+    if godkända_kort[0] == False and godkända_kort[1] != False and (sakhög[-1] < spelare[1]):
+        godkända_kort.pop(0), godkända_kort.insert(0,sakhög[-1])
+        sakhög.append(spelare[0]), spelare.pop(0)
+        spelare.insert(0, sakhög[-2]), sakhög.pop(-2)
+        # print(sakhög[-1],1,"sakhög 1")
+        return spelare
 
-        elif godkända_kort[9] == False and godkända_kort[8] == True and (spelare[8] < sakhög[-1]):
-            sakhög.append(spelare[9]), spelare.pop(9)
-            spelare.insert(9, sakhög[-2])
-            print(sakhög[-2], 10, "sakhög 2")
-            return spelare
+    # om index 8 är rätt så räcker att index 8 < index 9 för att bli godkänd
+    elif godkända_kort[9] == False and godkända_kort[8] != False and (sakhög[-1] > spelare[8]):
+        godkända_kort.pop(9), godkända_kort.insert(9,sakhög[-1])
+        sakhög.append(spelare[9]), spelare.pop(9)
+        spelare.insert(9, sakhög[-2]), sakhög.pop(-2)
+        # print(sakhög[-1],10,"sakhög 2")
+        return spelare
 
-        elif godkända_kort[j] == False and gi_min[j] <= sakhög[-1] <= gi_max[j]:
-            godkända_kort.pop(9), godkända_kort.insert(9, sakhög[-1])
+    for j in range(len(spelare)):
+        if godkända_kort[j] == False and gi_min[j] <= sakhög[-1] <= gi_max[j]:
             sakhög.append(spelare[j]), spelare.pop(j)
-            spelare.insert(j, sakhög[-2])
-            print(sakhög[-2], j + 1, "sakhög 3")
+            spelare.insert(j, sakhög[-2]), sakhög.pop(-2)
+            #print(sakhög[-1],j+1,"sakhög 3")
             return spelare
 
-    print("botten bytar ingen")
+   # print("botten byter inget")
     sakhög.append(kortlek[0]), kortlek.pop(0)
     return spelare
 
 
-def simulering(omgångar):
-    for ___ in range(omgångar):
-        pass
 
-    aktiva_spelare = kortutdelning(aktiva_spelare, kortlek, sakhög)
+def poäng_check(spelare):
+    for poäng in spelare:
+        if poäng >= 500:
+            return True
 
-    for tur in range(0, antal_spelare):
+    return False
 
-        if len(kortlek) <= 1:
-            for i in range(1, 61):
-                kortlek.append(i)
-            sakhög.clear()
-            blanda_kort(kortlek)
-            sakhög.append(kortlek[0])
-            # print("kortleken blandas")
+def racko_check(spelare):
+    for x in spelare:
+        if x == sorted(x):
+            return True
 
-        if spelare_namn[tur] == "jarvis":
-            print(aktiva_spelare[tur], sakhög[-1], kortlek[0])
-            print(jarvis(intervall_check(aktiva_spelare[tur]), aktiva_spelare[tur]), sakhög[-1], kortlek[0])
+    return False
 
-        elif spelare_namn[tur] == "gi":
-            print(aktiva_spelare[tur], sakhög[-1], kortlek[0])
-            print(gi(intervall_check(aktiva_spelare[tur]), aktiva_spelare[tur]), sakhög[-1], kortlek[0])
 
-        elif spelare_namn[tur] == "petter":
-            print(aktiva_spelare[tur], sakhög[-1], kortlek[0])
-            print(Petter(intervall_check(aktiva_spelare[tur]), aktiva_spelare[tur]), sakhög[-1], kortlek[0])
 
-        elif spelare_namn[tur] == "högen":
-            print(aktiva_spelare[tur], sakhög[-1], kortlek[0])
-            print(högen(intervall_check(aktiva_spelare[tur]), aktiva_spelare[tur]), sakhög[-1], kortlek[0])
+def antal_vinster(aktiva_poäng):
+    for tur in range(len(aktiva_spelare)):
+        vinster = aktiva_vinster[tur]
+        if aktiva_poäng[tur] >= 500:
+            vinster += 1
+            aktiva_vinster[tur] = vinster
+            break
 
-        if aktiva_spelare[tur] == sorted(aktiva_spelare[tur]):
-            print("\nRundan har avslutats då", spelare_namn[tur],
-                  "har fått Rack-o!\n\nHär är den nuvarande poängställningen:")
-            Räkna_Poäng(aktiva_poäng, aktiva_spelare[tur], aktiva_spelare)
+def antal_racko(spelare):
+    for x in spelare:
+        racko = aktiva_racko[tur]
+        if x == sorted(x):
+            racko += 1
+            aktiva_racko[tur] = racko
+            break
 
 
 # -------------------
 # SJÄLVA SPELET
 # -------------------
 
-rounds = 0
-omgång = 0
-
-
-def racko_check(spelare):
-    for hand in spelare:
-        if hand == sorted(hand):
-            return False
-        else:
-            return True
-
-def poäng_check(spelare):
-    for poäng in spelare:
-        if poäng >= 500:
-            return False
-        else:
-            return True
-
-def work_in_progess(spelare,lek,hög):
-    kortlek.clear()
-    for k in range(len(spelare)):
-        spelare[k].clear()
-
-    for i in range(1, 61):
-        lek.append(i)
-
-    hög.clear()
-    blanda_kort(lek)
-
 
 aktiva_spelare = kortutdelning(aktiva_spelare, kortlek, sakhög)
 
-while poäng_check(aktiva_poäng):
-    if not racko_check(aktiva_spelare):
-        work_in_progess(aktiva_spelare, kortlek, sakhög)
-        aktiva_spelare = kortutdelning(aktiva_spelare, kortlek, sakhög)
-        #blanda_kort(aktiva_spelare)
-        omgång += 1
-        print("\n--------------------------------------------------------\n")
-        print("ny runda (",omgång,")")
+for k in range(100):
+    antal_omblandningar = 0
+    rounds = 0
+    omgång = 0
 
+    print("\n--------------------------------------------------------\n")
+    print(k + 1)
+
+    if poäng_check(aktiva_poäng):
         for tur in range(len(aktiva_spelare)):
-            print(spelare_namn[tur], Räkna_Poäng(aktiva_poäng, aktiva_spelare[tur], aktiva_spelare))
+            aktiva_poäng[tur] = 0
 
-    while racko_check(aktiva_spelare):
-        for tur in range(0, antal_spelare):
-            rounds += 1
-            if len(kortlek) <= 1:
-                sakhög.clear()
-                for i in range(1, 61):
-                    kortlek.append(i)
+    while not poäng_check(aktiva_poäng):
+        #print(racko_check(aktiva_spelare),poäng_check(aktiva_poäng))
 
-                blanda_kort(kortlek)
-                sakhög.append(kortlek[0])
-                print("kortleken blandas")
+        while not racko_check(aktiva_spelare):
+            for tur in range(len(aktiva_spelare)):
+                rounds += 1
+                #print(racko_check(aktiva_spelare), tur)
 
-            print("\n--------------------------------------------------------\n")
-            print(spelare_namn[tur], " ", tur + 1, "'s tur", sep='')
+                if len(kortlek) == 0:
+                    blanda_kort_igen()
+                    antal_omblandningar += 1
 
-            if spelare_namn[tur] == "jarvis":
-                print(aktiva_spelare[tur], sakhög[-1], kortlek[0])
-                print(jarvis(intervall_check(aktiva_spelare[tur]), aktiva_spelare[tur]), sakhög[-1], kortlek[0])
+                elif spelare_namn[tur] == "jarvis":
+                    jarvis(intervall_check(aktiva_spelare[tur]), aktiva_spelare[tur])
 
-            elif spelare_namn[tur] == "gi":
-                print(aktiva_spelare[tur], sakhög[-1], kortlek[0])
-                print(gi(intervall_check(aktiva_spelare[tur]), aktiva_spelare[tur]), sakhög[-1], kortlek[0])
+                elif spelare_namn[tur] == "gi":
+                    gi(intervall_check(aktiva_spelare[tur]), aktiva_spelare[tur])
+                    #print(intervall_check(aktiva_spelare[tur]))
 
-            elif spelare_namn[tur] == "petter":
-                print(aktiva_spelare[tur], sakhög[-1], kortlek[0])
-                print(Petter(intervall_check(aktiva_spelare[tur]), aktiva_spelare[tur]), sakhög[-1], kortlek[0])
+                elif spelare_namn[tur] == "petter":
+                    Petter(intervall_check(aktiva_spelare[tur]), aktiva_spelare[tur])
+                    #print(intervall_check(aktiva_spelare[tur]))
 
-            elif spelare_namn[tur] == "högen":
-                print(aktiva_spelare[tur], sakhög[-1], kortlek[0])
-                print(högen(intervall_check(aktiva_spelare[tur]), aktiva_spelare[tur]), sakhög[-1], kortlek[0])
+                elif spelare_namn[tur] == "högen":
+                    högen(intervall_check(aktiva_spelare[tur]), aktiva_spelare[tur])
+                    #print(intervall_check(aktiva_spelare[tur]))
 
-            if aktiva_spelare[tur] == sorted(aktiva_spelare[tur]):
-                Räkna_Poäng(aktiva_poäng, aktiva_spelare[tur], aktiva_spelare)
-                print("\n", spelare_namn[tur], tur + 1, "fick rack-o")
-                print(racko_check(aktiva_spelare))
-                break
+                if aktiva_spelare[tur] == sorted(aktiva_spelare[tur]):
+                    #print(spelare_namn[tur],"fick rack-o")
+                    Räkna_Poäng(aktiva_poäng, aktiva_spelare[tur], aktiva_spelare)
+                    antal_racko(aktiva_spelare)
+                    break
 
+            #print(racko_check(aktiva_spelare))
+        if racko_check(aktiva_spelare):
+            nya_kortutdelning(aktiva_spelare, kortlek, sakhög)
+            #print("ny kortutdelning")
+            aktiva_spelare = kortutdelning(aktiva_spelare, kortlek, sakhög)
+            omgång += 1
 
-for tur in range(len(aktiva_spelare)):
-    print(spelare_namn[tur], Räkna_Poäng(aktiva_poäng, aktiva_spelare[tur], aktiva_spelare))
+    #det man ser i terminalen
+    antal_vinster(aktiva_poäng)
+    for tur in range(len(aktiva_spelare)):
+        print(f"{spelare_namn[tur]:<8} {aktiva_poäng[tur]:<8} {aktiva_vinster[tur]:<8} {aktiva_racko[tur]:<8}")
+
+    print("\n",rounds // (antal_spelare * omgång),antal_omblandningar)
+print("\n--------------------------------------------------------\n")
