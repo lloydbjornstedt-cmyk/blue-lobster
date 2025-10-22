@@ -37,6 +37,8 @@ aktiva_poäng = alla_poäng[:antal_spelare]
 gi_min = [1, 7, 13, 19, 25, 31, 37, 43, 49, 55]
 gi_max = [6, 12, 18, 24, 30, 36, 42, 48, 54, 60]
 
+
+
 alla_vinster = [0, 0, 0, 0]
 aktiva_vinster = alla_vinster[:antal_spelare]
 
@@ -44,9 +46,20 @@ alla_racko = [0, 0, 0, 0]
 aktiva_racko = alla_racko[:antal_spelare]
 
 
+
+p1_bytt = 0
+p2_bytt = 0
+p3_bytt = 0
+p4_bytt = 0
+
+alla_byten = [p1_bytt, p2_bytt, p3_bytt, p4_bytt]
+aktiva_byten = alla_byten[:antal_spelare]
+
+
 # -------------------
 # FUNKTIONER
 # -------------------
+
 
 
 def blanda_kort(hög):
@@ -317,6 +330,8 @@ def jarvis(godkända_kort, spelare):
 """
 
 def gi(godkända_kort, spelare):
+    swaps = aktiva_byten[tur]
+
     #kollar sakhögen
     # [0] < [1]
     if godkända_kort[0] == False and godkända_kort[1] != False and (sakhög[-1] < spelare[1]):
@@ -324,6 +339,8 @@ def gi(godkända_kort, spelare):
         sakhög.append(spelare[0]), spelare.pop(0)
         spelare.insert(0, sakhög[-2]), sakhög.pop(-2)
         #print(spelare[0],"1","sakhög 1")
+        swaps += 1
+        aktiva_byten[tur] = swaps
         return spelare 
 
     # [8] < [9]
@@ -332,6 +349,8 @@ def gi(godkända_kort, spelare):
         sakhög.append(spelare[9]), spelare.pop(9)
         spelare.insert(9, sakhög[-2]), sakhög.pop(-2)
         #print(spelare[9],"10","sakhög 2")
+        swaps += 1
+        aktiva_byten[tur] = swaps
         return spelare
 
     for j in range(len(spelare)):
@@ -339,6 +358,8 @@ def gi(godkända_kort, spelare):
             sakhög.append(spelare[j]), spelare.pop(j)
             spelare.insert(j, sakhög[-2]), sakhög.pop(-2)
             #print(spelare[j],j+1,"sakhög 3")
+            swaps += 1
+            aktiva_byten[tur] = swaps
             return spelare
         
     #kollar kortleken
@@ -348,6 +369,8 @@ def gi(godkända_kort, spelare):
         sakhög.append(spelare[0]), spelare.pop(0)
         spelare.insert(0, kortlek[0]), kortlek.pop(0)
         #print(spelare[0],"1","kortlek 1")
+        swaps += 1
+        aktiva_byten[tur] = swaps
         return spelare 
 
     # [8] < [9]
@@ -356,6 +379,8 @@ def gi(godkända_kort, spelare):
         sakhög.append(spelare[9]), spelare.pop(9)
         spelare.insert(9, kortlek[0]), kortlek.pop(0)
         #print(spelare[9],"10","kortlek 2")
+        swaps += 1
+        aktiva_byten[tur] = swaps
         return spelare
     
     for k in range(len(spelare)):
@@ -363,7 +388,9 @@ def gi(godkända_kort, spelare):
             sakhög.append(spelare[k]), spelare.pop(k)
             spelare.insert(k, kortlek[0]), kortlek.pop(0)
             #print(spelare[k],k+1,"kortlek 3")
-            return spelare
+            swaps += 1
+            aktiva_byten[tur] = swaps
+            return spelare 
 
     #print("botten byter inget")
     sakhög.append(kortlek[0]), kortlek.pop(0)
@@ -371,39 +398,55 @@ def gi(godkända_kort, spelare):
 
 def Petter(godkända_kort, spelare):
     j = 0
+    swaps = aktiva_byten[tur]
+
     # om kortet är godkänt kan den gå vidare
     if godkända_kort[j]:
         j += 1
-        #print(j)
 
     # kollar sakhögen
+    # [0] < [1]
     elif godkända_kort[0] == False and godkända_kort[1] != False and (sakhög[-1] < spelare[1]):
         godkända_kort.pop(0), godkända_kort.insert(0, sakhög[-1])
         sakhög.append(spelare[0]), spelare.pop(0)
         spelare.insert(0, sakhög[-2]), sakhög.pop(-2)
         #print(spelare[0],"1","sakhög 1")
+        j += 1
+        swaps += 1
+        aktiva_byten[tur] = swaps
         return spelare 
     
+    # resten av handen
     elif godkända_kort[j] == False and gi_min[j] <= sakhög[-1] <= gi_max[j]:
         sakhög.append(spelare[j]), spelare.pop(j)
         spelare.insert(j, sakhög[-2]), sakhög.pop(-2)
         #print(spelare[j],j+1,"sakhög 2")
         j += 1
+        swaps += 1
+        aktiva_byten[tur] = swaps
         return spelare
 
+
     # kollar kortleken
+    # [0] < [1]
     elif godkända_kort[0] == False and godkända_kort[1] != False and (kortlek[0] < spelare[1]):
         godkända_kort.pop(0), godkända_kort.insert(0, kortlek[0])
         sakhög.append(spelare[0]), spelare.pop(0)
         spelare.insert(0, kortlek[0]), kortlek.pop(0)
         #print(spelare[0],"1","kortlek 1")
+        j += 1
+        swaps += 1
+        aktiva_byten[tur] = swaps
         return spelare 
     
+    # resten av handen
     elif godkända_kort[j] == False and gi_min[j] <= kortlek[0] <= gi_max[j]:
         sakhög.append(spelare[j]), spelare.pop(j)
         spelare.insert(j, kortlek[0]), kortlek.pop(0)
         #print(spelare[j],j+1,"kortlek 2")
         j += 1
+        swaps += 1
+        aktiva_byten[tur] = swaps
         return spelare
 
     #print("botten byter inget")
@@ -411,13 +454,17 @@ def Petter(godkända_kort, spelare):
     return spelare
 
 def högen(godkända_kort, spelare):
+    swaps = aktiva_byten[tur]
+
     # [0] < [1]    
     if godkända_kort[0] == False and godkända_kort[1] != False and (sakhög[-1] < spelare[1]):
         godkända_kort.pop(0), godkända_kort.insert(0, sakhög[-1])
         sakhög.append(spelare[0]), spelare.pop(0)
         spelare.insert(0, sakhög[-2]), sakhög.pop(-2)
         #print(spelare[0],"1","sakhög 1")
-        return spelare 
+        swaps += 1
+        aktiva_byten[tur] = swaps
+        return spelare
 
     # [8] < [9]
     elif godkända_kort[9] == False and godkända_kort[8] != False and (sakhög[-1] > spelare[8]):
@@ -425,6 +472,8 @@ def högen(godkända_kort, spelare):
         sakhög.append(spelare[9]), spelare.pop(9)
         spelare.insert(9, sakhög[-2]), sakhög.pop(-2)
         #print(spelare[9],"10","sakhög 2")
+        swaps += 1
+        aktiva_byten[tur] = swaps
         return spelare
 
     for j in range(len(spelare)):
@@ -432,6 +481,8 @@ def högen(godkända_kort, spelare):
             sakhög.append(spelare[j]), spelare.pop(j)
             spelare.insert(j, sakhög[-2]), sakhög.pop(-2)
             #print(spelare[j],j+1,"sakhög 3")
+            swaps += 1
+            aktiva_byten[tur] = swaps
             return spelare
 
     #print("botten byter inget")
@@ -570,7 +621,7 @@ def antal_racko(spelare):
 
 aktiva_spelare = kortutdelning(aktiva_spelare, kortlek, sakhög)
 
-for k in range(100):
+for k in range(10):
     antal_omblandningar = 0
     rounds = 0
     omgång = 0
@@ -636,10 +687,17 @@ for k in range(100):
             aktiva_spelare = kortutdelning(aktiva_spelare, kortlek, sakhög)
             omgång += 1
 
+
     # det man ser i terminalen
     antal_vinster(aktiva_poäng)
     for tur in range(len(aktiva_spelare)):
-        print(f"{spelare_namn[tur]:<8} {aktiva_poäng[tur]:<8} {aktiva_vinster[tur]:<8} {aktiva_racko[tur]:<8}")
+        print(f"{spelare_namn[tur]:<8} {aktiva_poäng[tur]:<8} {aktiva_vinster[tur]:<8} {aktiva_racko[tur]:<8} {aktiva_byten[tur]:<8}")
 
     print("\n", rounds // (antal_spelare * omgång), antal_omblandningar)
-print("\n--------------------------------------------------------\n")
+print("\n----------------------------------------------------------------------------------------\n")
+
+print("spelet har avslutats och här är resultaten\n")
+print(f"{"namn":<13} {"antal vinster":<18} {"antal rack-o":<16} {"antal kort som bytes ut":<18}")
+for tur in range(len(aktiva_spelare)):
+    print(f"{spelare_namn[tur]:<18} {aktiva_vinster[tur]:<18} {aktiva_racko[tur]:<21} {aktiva_byten[tur]:<18}")
+print("\n----------------------------------------------------------------------------------------\n")
