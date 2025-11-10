@@ -508,11 +508,16 @@ tot_omgång = 0
 
 aktiva_spelare = kortutdelning(aktiva_spelare, kortlek, sakhög)
 
-for k in range(1):
+
+temp_rounds = 0
+
+
+for k in range(100):
+
     antal_omblandningar = 0
     rounds = 0
     omgång = 0
-    temp_rounds = 0
+    
 
     #print("\n--------------------------------------------------------\n")
     #print(k + 1)
