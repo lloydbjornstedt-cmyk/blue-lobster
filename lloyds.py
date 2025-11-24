@@ -1,103 +1,125 @@
 
 
-#idé omvandla ett kort till hexadecimal 
+färg_dict = {"spader":0, "klöver":0, "ruter":0, "hjärter":0}
+valör_dict = {2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0, 10:0, 11:0, 12:0, 13:0, 14:0}
+
+färg_list = []
+valör_list = []
 
 
-#kan inte koppla valör och färg
-#färg_dict = {"spader":0, "klöver":0, "ruter":0, "hjärter":0}
-valör_dict = {"2":0, "3":0, "4":0, "5":0, "6":0, "7":0, "8":0, "9":0, "10":0, "knäckt":0, "drottning":0, "kung":0, "ess":0}
+def player_input():
+    färg, valör = input(f"kort {len(valör_list)+1}: ").split(" ")  #ValueError om inte split, KeyError
 
-färg_lista = []
-valör_lista = []
+    if valör == "knäckt":
+        valör = 11
 
-count = 1
+    elif valör == "dam":
+        valör = 12
 
-class Card:
-    def __init__(self):
-        self.färg, self.valör = input(f"{len(valör_lista)+1}: ").split(" ")  #ValueError om inte split, KeyError om input inte är med i en dict
+    elif valör == "kung":
+        valör = 13
 
-        #self.kort = self.färg, self.valör
-        #färg_dict[self.färg] += 1
-        valör_dict[self.valör] += 1
-        färg_lista.append(self.färg)
-        valör_lista.append(self.valör)
+    elif valör == "ess":
+        valör = 14
+
+    färg_list.append(färg)
+    valör_list.append(int(valör))
+    färg_dict[färg] += 1
+    valör_dict[int(valör)] += 1
 
 
-def utv_hand():
-    for i in valör_dict.values():
-        if i == 4:
+def consecutive():
+    pass
+
+def hand_evaluation():
+    pass
+    # ANTECKNING
+    # färgstege (färg + stege)
+
+    # fyrtal
+    for i in valör_list:
+        if valör_list.count(i) == 4:
             return "fyrtal"
 
-        elif i == 3:
+
+    # kåk (triss + par)
+
+
+    # färg (5 av samma färg)
+    for i in färg_list:
+        if färg_list.count(i) == 5:
+            return "färg"
+
+    # stege - behöver ta hänsyn till ess (5 kort med valörer i direkt följd)
+
+    # triss
+    for i in valör_list:
+        if valör_list.count(i) == 3:
             return "triss"
 
-        elif i == 2:
+    # tvåpar
+
+    # par
+    for i in valör_list:
+        if valör_list.count(i) == 2:
             return "par"
+
+    # högt kort
+    if 11 <= sorted(valör_list)[-1] <= 14:
+        return "high card"
 
     return "just fold bro"
 
 
-print("\n")
-print("Handen")
-for i in range(2):
-    hand = Card()
+def player_choice():
+    pass
 
-print("\n", utv_hand())
+
+
+"""
+print("\n")
+marker = int(input("Antalet marker: "))
+print("\n------------------------------------------\n")
+
+while marker >= 0:
+"""
+
+print("Pre-flop")
+for i in range(2):
+    player_input()
+
+print(hand_evaluation())
 print("\n------------------------------------------\n")
 
 
 print("Flop")
 for i in range(3):
-    flop = Card()
+    player_input()
 
-print("\n", utv_hand())
+print(hand_evaluation())
 print("\n------------------------------------------\n")
 
 
 print("Turn")
-turn = Card()
+player_input()
 
-print("\n", utv_hand())
+print(hand_evaluation())
 print("\n------------------------------------------\n")
 
 
 print("River")
-river = Card()
+player_input()
 
-print("\n", utv_hand())
+print(hand_evaluation())
 print("\n------------------------------------------\n")
 
 
-print(färg_lista)
-print(valör_lista)
-
-
-
-
-
-
-"""
+print(färg_list)
+print(valör_list)
 print(färg_dict)
 print(valör_dict)
 
-for i in valör_dict.values(): #values är antalet av varje key
-    if i == 2: #om det finns två av samma kort (par)
-        print("call")
-        break
-    else:
-        print("fold")
-        break
-"""
 
-# ANTECKNING
-# färgstege - N/A (färg + stege)
-# fyrtal - *
-# kåk - N/A (triss + par)
-# färg - N/A (5 av samma färg)
-# stege - N/A, behöver ta hänsyn till ess (5 kort med valörer i direkt följd)
-# triss - *
-# tvåpar - N/A
-# par - *
-# högt kort - N/A, ge numeriskt värde till klädda kort (bästa kortet)
 
-# alla med * = kollar values i valör_dict med en for-loop
+
+
