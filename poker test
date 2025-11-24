@@ -1,0 +1,147 @@
+"""
+POKER BOT 
+skapad 21/11/2025
+skapare Lloyd Björnstedt
+senaste uppdatering:
+
+
+"""
+
+färg_dict = {"spader":0, "klöver":0, "ruter":0, "hjärter":0}
+valör_dict = {2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0, 10:0, 11:0, 12:0, 13:0, 14:0}
+färg_list = []
+valör_list = []
+
+
+
+def player_input():
+    färg, valör = input(f"kort {len(valör_list)+1}: ").split(" ")  #ValueError om inte split, KeyError om key inte med i dic 
+
+    if valör == "knäckt":
+        valör = 11
+
+    elif valör == "dam":
+        valör = 12
+
+    elif valör == "kung":
+        valör = 13
+
+    elif valör == "ess":
+        valör = 14
+
+    färg_list.append(färg)
+    valör_list.append(int(valör))
+    färg_dict[färg] += 1
+    valör_dict[int(valör)] += 1
+
+
+
+def par_triss_fyrtal(antal,lista):
+    for i in lista:
+        if lista.count(i) == antal:
+            return True
+  
+def par_triss_fyrtal2(antal,dic):
+    for i in dic.values():
+        if i == antal:
+            return True
+
+def stege(lista):
+    pass
+
+    """
+        count = 1
+        consecutive_runs_list = []
+
+        for i in range(9):
+            if spelare[i + 1] == spelare[i] + 1:
+                count += 1
+            else:
+                consecutive_runs_list.append(count)
+                count = 1
+
+        highest_consecutive = max(consecutive_runs_list)
+
+        return highest_consecutive
+    """
+
+
+
+def hand_evaluation():
+    # ANTECKNING
+    # färgstege (färg + stege)
+
+
+    # fyrtal
+    if par_triss_fyrtal(4,valör_list):
+        return "fyrtal"
+
+
+    # kåk (triss + par)
+    elif par_triss_fyrtal(2,valör_list) and par_triss_fyrtal(3,valör_list):
+        return "kåk"
+
+
+    # färg (5 av samma färg)
+    elif par_triss_fyrtal(5,färg_list):
+        return "färg"
+
+
+    # stege - behöver ta hänsyn till ess (5 kort med valörer i direkt följd)
+
+
+    # triss
+    elif par_triss_fyrtal(3,valör_list):
+        return "triss"
+    
+
+    # tvåpar
+
+
+    # par
+    elif par_triss_fyrtal(2,valör_list):
+        return "par"
+
+    # högt kort
+    #return f"high card ({sorted(valör_list)[-1]})"
+    return f"high card ({sorted(valör_list)[-1]})"
+
+
+
+def player_choice():
+    pass
+
+
+
+
+
+print("Pre-flop")
+for i in range(2):
+    player_input()
+
+print(hand_evaluation())
+print("\n------------------------------------------\n")
+
+
+print("Flop")
+for i in range(3):
+    player_input()
+
+print(hand_evaluation())
+print("\n------------------------------------------\n")
+
+
+print("Turn")
+player_input()
+
+print(hand_evaluation())
+print("\n------------------------------------------\n")
+
+
+print("River")
+player_input()
+
+print(hand_evaluation())
+print("\n------------------------------------------\n")
+
+
