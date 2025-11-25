@@ -65,7 +65,7 @@ def tvåpar(lista):
     if antal_par >= 2:
         return True
         
-def par_triss_fyrtal(antal, lista):
+def par_triss_fyrtal_färg(antal, lista):
     for i in lista:
         if lista.count(i) == antal:
             return True
@@ -95,7 +95,7 @@ def high_card(lista):
 
 def pre_flop_eval(hand,rang):
     #rangordnar korten i pre flop
-    if par_triss_fyrtal(2,hand):
+    if par_triss_fyrtal_färg(2,hand):
         rang.append(1)
     else: 
         return rang.append(0)
@@ -107,15 +107,15 @@ def hand_eval(alla_komb,rang):
         # färgstege = 8
 
         # fyrtal = 7
-        if par_triss_fyrtal(4, hand):
+        if par_triss_fyrtal_färg(4, hand):
             rang.append(7)
 
         # kåk = 6
-        elif par_triss_fyrtal(2, hand) and par_triss_fyrtal(3, hand):
+        elif par_triss_fyrtal_färg(2, hand) and par_triss_fyrtal_färg(3, hand):
             rang.append(6)
 
         # färg = 5
-        elif par_triss_fyrtal(5,färg_list):
+        elif par_triss_fyrtal_färg(5,färg_list):
             rang.append(5)
 
         # stege = 4
@@ -123,7 +123,7 @@ def hand_eval(alla_komb,rang):
             rang.append(4)
 
         # triss = 3
-        elif par_triss_fyrtal(3, hand):
+        elif par_triss_fyrtal_färg(3, hand):
             rang.append(3)
 
         # tvåpar = 2
@@ -131,7 +131,7 @@ def hand_eval(alla_komb,rang):
             rang.append(2)
 
         # par = 1
-        elif par_triss_fyrtal(2, hand):
+        elif par_triss_fyrtal_färg(2, hand):
             rang.append(1)
 
         # högt kort = 0
