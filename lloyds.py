@@ -1,14 +1,16 @@
 
 
-färg_dict = {"spader":0, "klöver":0, "ruter":0, "hjärter":0}
-valör_dict = {2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0, 10:0, 11:0, 12:0, 13:0, 14:0}
+from itertools import combinations
 
+färg_dict = {"spader": 0, "klöver": 0, "ruter": 0, "hjärter": 0}
+valör_dict = {2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, 10: 0, 11: 0, 12: 0, 13: 0, 14: 0}
 färg_list = []
 valör_list = []
+int_valör_list = []
 
 
 def player_input():
-    färg, valör = input(f"kort {len(valör_list)+1}: ").split(" ")  #ValueError om inte split, KeyError
+    färg, valör = input(f"kort {len(valör_list) + 1}: ").split(" ")  # ValueError om inte split, KeyError om key inte med i dic
 
     if valör == "knäckt":
         valör = 11
@@ -28,98 +30,143 @@ def player_input():
     valör_dict[int(valör)] += 1
 
 
-def consecutive():
-    pass
 
-def hand_evaluation():
-    pass
+def par_triss_fyrtal_färg(antal, dic):
+    for i in dic.values():
+        if i == antal:
+            return True
+
+def tvåpar(dic):
+    antal_par = 0
+
+    for i in dic.values():
+        if i == 2:
+            antal_par += 1
+
+    if antal_par == 2:
+        return True
+
+def stege(lista):
+    count = 1
+
+    if 14 in lista:
+        lista.append(1)
+
+    for i in range(1,len(lista)):
+        if lista[i] == lista[i-1] + 1:
+           count += 1
+        else:
+            count = 1
+
+    if count == 5:
+        return True
+
+def high_card(lista):
+    if sorted(lista)[-1] == 14:
+        hc = "ess"
+
+    elif sorted(lista)[-1] == 13:
+        hc = "kung"
+
+    elif sorted(lista)[-1] == 12:
+        hc = "dam"
+
+    elif sorted(lista)[-1] == 11:
+        hc = "knäckt"
+
+    elif sorted(lista)[-1] == 10:
+        hc = 10
+
+    else:
+        hc = int(sorted(lista)[-1])
+
+    return hc
+
+
+
+
+
+def pre_flop_eval():
+    if par_triss_fyrtal_färg(2,valör_dict):
+        return "par"
+
+    return f"high card ({high_card(valör_list):})"
+
+def hand_eval():
     # ANTECKNING
     # färgstege (färg + stege)
 
     # fyrtal
-    for i in valör_list:
-        if valör_list.count(i) == 4:
-            return "fyrtal"
+    if par_triss_fyrtal_färg(4, valör_dict):
+        return "fyrtal"
 
 
     # kåk (triss + par)
+    elif par_triss_fyrtal_färg(2, valör_dict) and par_triss_fyrtal_färg(3, valör_dict):
+        return "kåk"
 
 
     # färg (5 av samma färg)
-    for i in färg_list:
-        if färg_list.count(i) == 5:
-            return "färg"
+    elif par_triss_fyrtal_färg(5, färg_dict):
+        return "färg"
 
-    # stege - behöver ta hänsyn till ess (5 kort med valörer i direkt följd)
+
+    # stege - (5 kort med valörer i direkt följd)
+    elif stege(sorted(valör_list)):
+        return "stege"
 
     # triss
-    for i in valör_list:
-        if valör_list.count(i) == 3:
-            return "triss"
+    elif par_triss_fyrtal_färg(3, valör_dict):
+        return "triss"
 
     # tvåpar
+    elif tvåpar(valör_dict):
+        return "tvåpar"
 
     # par
-    for i in valör_list:
-        if valör_list.count(i) == 2:
-            return "par"
+    elif par_triss_fyrtal_färg(2, valör_dict):
+        return "par"
 
     # högt kort
-    if 11 <= sorted(valör_list)[-1] <= 14:
-        return "high card"
-
-    return "just fold bro"
-
-
-def player_choice():
-    pass
+    else:
+        return f"high card ({high_card(valör_list):})"
 
 
 
-"""
-print("\n")
-marker = int(input("Antalet marker: "))
-print("\n------------------------------------------\n")
 
-while marker >= 0:
-"""
+
 
 print("Pre-flop")
 for i in range(2):
     player_input()
 
-print(hand_evaluation())
+print(list(combinations(valör_list,2)))
+print(pre_flop_eval())
 print("\n------------------------------------------\n")
-
 
 print("Flop")
 for i in range(3):
     player_input()
 
-print(hand_evaluation())
+print(list(combinations(valör_list,5)))
+print(hand_eval())
 print("\n------------------------------------------\n")
-
 
 print("Turn")
 player_input()
 
-print(hand_evaluation())
+print(list(combinations(valör_list,5)))
+print(hand_eval())
 print("\n------------------------------------------\n")
-
 
 print("River")
 player_input()
 
-print(hand_evaluation())
+print(list(combinations(valör_list,5)))
+print(hand_eval())
 print("\n------------------------------------------\n")
-
 
 print(färg_list)
 print(valör_list)
-print(färg_dict)
-print(valör_dict)
-
-
-
-
+print(list(combinations(valör_list,5)))
 
