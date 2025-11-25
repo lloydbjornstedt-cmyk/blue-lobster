@@ -7,15 +7,16 @@ senaste uppdatering:
 
 """
 
-färg_dict = {"spader":0, "klöver":0, "ruter":0, "hjärter":0}
-valör_dict = {2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0, 10:0, 11:0, 12:0, 13:0, 14:0}
-färg_list = []
-valör_list = []
+from itertools import combinations
 
+
+färg_list = [] 
+valör_list = []
+hand_rang = []
 
 
 def player_input():
-    färg, valör = input(f"kort {len(valör_list)+1}: ").split(" ")  #ValueError om inte split, KeyError om key inte med i dic 
+    färg, valör = input(f"kort {len(valör_list) + 1}: ").split(" ")  # ValueError om inte split
 
     if valör == "knäckt":
         valör = 11
@@ -31,87 +32,143 @@ def player_input():
 
     färg_list.append(färg)
     valör_list.append(int(valör))
-    färg_dict[färg] += 1
-    valör_dict[int(valör)] += 1
+    #färg_dict[färg] += 1
+    #valör_dict[int(valör)] += 1
 
 
 
-def par_triss_fyrtal(antal,lista):
+def färg_steg():
+    pass
+
+def stege(lista):
+    count = 1
+
+    if 14 in lista:
+        lista.append(1)
+
+    for i in range(1,len(lista)):
+        if lista[i] == lista[i-1] + 1:
+           count += 1
+        else:
+            count = 1
+
+    if count == 5:
+        return True
+    
+def tvåpar(lista):
+    antal_par = 0
+
+    for i in lista:
+        if lista.count(i) == 2:
+            antal_par += 1
+
+    if antal_par >= 2:
+        return True
+        
+def par_triss_fyrtal(antal, lista):
     for i in lista:
         if lista.count(i) == antal:
             return True
-  
-def par_triss_fyrtal2(antal,dic):
-    for i in dic.values():
-        if i == antal:
-            return True
 
-def stege(lista):
-    pass
+def high_card(lista):
+    if sorted(lista)[-1] == 14:
+        hc = "ess"
 
-    """
-        count = 1
-        consecutive_runs_list = []
+    elif sorted(lista)[-1] == 13:
+        hc = "kung"
 
-        for i in range(9):
-            if spelare[i + 1] == spelare[i] + 1:
-                count += 1
-            else:
-                consecutive_runs_list.append(count)
-                count = 1
+    elif sorted(lista)[-1] == 12:
+        hc = "dam"
 
-        highest_consecutive = max(consecutive_runs_list)
+    elif sorted(lista)[-1] == 11:
+        hc = "knäckt"
 
-        return highest_consecutive
-    """
+    elif sorted(lista)[-1] == 10:
+        hc = 10
+
+    else:
+        hc = int(sorted(lista)[-1])
+
+    return hc
 
 
 
-def hand_evaluation():
-    # ANTECKNING
-    # färgstege (färg + stege)
+def pre_flop_eval(hand,rang):
+    #rangordnar korten i pre flop
+    if par_triss_fyrtal(2,hand):
+        rang.append(1)
+    else: 
+        return rang.append(0)
 
+def hand_eval(alla_komb,rang):
+    #rangordnar alla möjliga 5 kort händer (0-8)
 
-    # fyrtal
-    if par_triss_fyrtal(4,valör_list):
+    for hand in alla_komb:
+        # färgstege = 8
+
+        # fyrtal = 7
+        if par_triss_fyrtal(4, hand):
+            rang.append(7)
+
+        # kåk = 6
+        elif par_triss_fyrtal(2, hand) and par_triss_fyrtal(3, hand):
+            rang.append(6)
+
+        # färg = 5
+        elif par_triss_fyrtal(5,färg_list):
+            rang.append(5)
+
+        # stege = 4
+        elif stege(sorted(hand)):
+            rang.append(4)
+
+        # triss = 3
+        elif par_triss_fyrtal(3, hand):
+            rang.append(3)
+
+        # tvåpar = 2
+        elif tvåpar(hand):
+            rang.append(2)
+
+        # par = 1
+        elif par_triss_fyrtal(2, hand):
+            rang.append(1)
+
+        # högt kort = 0
+        else:
+            rang.append(0)
+    
+    return rang
+
+def hand_trans(bäst):
+    bäst = sorted(bäst)[-1]
+
+    if bäst == 8: 
+        return "färgstege"
+
+    elif bäst == 7:
         return "fyrtal"
 
-
-    # kåk (triss + par)
-    elif par_triss_fyrtal(2,valör_list) and par_triss_fyrtal(3,valör_list):
+    elif bäst == 6:
         return "kåk"
 
-
-    # färg (5 av samma färg)
-    elif par_triss_fyrtal(5,färg_list):
+    elif bäst == 5:
         return "färg"
 
+    elif bäst == 4:
+        return "stege"
 
-    # stege - behöver ta hänsyn till ess (5 kort med valörer i direkt följd)
-
-
-    # triss
-    elif par_triss_fyrtal(3,valör_list):
+    elif bäst == 3:
         return "triss"
-    
 
-    # tvåpar
+    elif bäst == 2:
+        return "tvåpar"
 
-
-    # par
-    elif par_triss_fyrtal(2,valör_list):
+    elif bäst == 1:
         return "par"
 
-    # högt kort
-    #return f"high card ({sorted(valör_list)[-1]})"
-    return f"high card ({sorted(valör_list)[-1]})"
-
-
-
-def player_choice():
-    pass
-
-
+    elif bäst == 0:
+        return f"högt kort ({high_card(valör_list)})"
 
 
 
@@ -119,7 +176,8 @@ print("Pre-flop")
 for i in range(2):
     player_input()
 
-print(hand_evaluation())
+pre_flop_eval(valör_list,hand_rang)
+print(hand_trans(hand_rang))
 print("\n------------------------------------------\n")
 
 
@@ -127,21 +185,29 @@ print("Flop")
 for i in range(3):
     player_input()
 
-print(hand_evaluation())
+hand_eval(list(combinations(valör_list,5)),hand_rang)
+print(hand_trans(hand_rang))
 print("\n------------------------------------------\n")
 
 
 print("Turn")
 player_input()
 
-print(hand_evaluation())
+hand_eval(list(combinations(valör_list,5)),hand_rang)
+print(hand_trans(hand_rang))
 print("\n------------------------------------------\n")
 
 
 print("River")
 player_input()
 
-print(hand_evaluation())
+hand_eval(list(combinations(valör_list,5)),hand_rang)
+print(hand_trans(hand_rang))
 print("\n------------------------------------------\n")
 
 
+
+print(färg_list)
+print(valör_list)
+print(list(combinations(valör_list,5)))
+print(len(list(combinations(valör_list,5))))
