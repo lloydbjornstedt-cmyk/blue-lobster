@@ -16,37 +16,40 @@ from itertools import combinations
 
 färg_list = []
 valör_list = []
-hand_rang = []
 kort_lista = []
+hand_rang = []
 
-
+spelare_marker = []
+pot = 0
 
 # steg 2
 
 # tar input om kortets färg och valör
-def player_input():
-    kort = input(f"kort {len(valör_list) + 1}: ")
-    kort_lista.append(kort) # valör och färg tillsammans för färgstege
+def player_input(x):
+    for i in range(x):
+        kort = input(f"kort {len(valör_list) + 1}: ")
+        kort_lista.append(kort) # valör och färg tillsammans för färgstege
 
-    färg, valör = kort.split()  # ValueError om inte split
+        färg, valör = kort.split(" ")  # ValueError om inte split, (" ") för att garantera split
 
-    # ger numeriskt värde till klädda kort
-    if valör == "knäckt":
-        valör = 11
+        # ger numeriskt värde till klädda kort
+        if valör == "knäckt":
+            valör = 11
 
-    elif valör == "dam":
-        valör = 12
+        elif valör == "dam":
+            valör = 12
 
-    elif valör == "kung":
-        valör = 13
+        elif valör == "kung":
+            valör = 13
 
-    elif valör == "ess":
-        valör = 14
-        valör_list.append(1)    # ess kan värderas som mista och största kortet i en stege (ess = 14)
+        elif valör == "ess": # ess kan värderas som 1 och 4 i en stege
+            valör = 14
+            kort_lista.append(färg + " " + "1")
+            valör_list.append(1)
 
-    # färg och valör separat
-    färg_list.append(färg)
-    valör_list.append(int(valör))   #sparar valörer som int för enklare värdering
+        # färg och valör separat
+        färg_list.append(färg)
+        valör_list.append(int(valör))   #int för enklare värdering
 
 
 
@@ -143,7 +146,7 @@ def pre_flop_eval(hand,rang):
 def hand_eval(alla_komb,rang):
     for hand in alla_komb:
         # färgstege = 8
-        if färgsteg(list(combinations(kort_lista,5))):
+        if färgsteg(list(combinations(kort_lista,5))): # unik iterator
             rang.append(8)
 
         # fyrtal = 7
@@ -155,7 +158,7 @@ def hand_eval(alla_komb,rang):
             rang.append(6)
 
         # färg = 5
-        elif par_triss_fyrtal_färg(5,färg_list):
+        elif par_triss_fyrtal_färg(5,färg_list): # unik iterator
             rang.append(5)
 
         # stege = 4
@@ -213,68 +216,130 @@ def hand(bäst):
         return f"högt kort ({high_card(valör_list)})"
 
 
-"""
+
+def player_choice(rang):
+   tot = 0
+   for i in range(len(spelare_marker)):
+        if spelare_marker[i] == "jag":
+            print(" ")
+            print(rang)
+            print(" ")
+
+        else:
+            bet = int(input(f"spelare {i+1} gör: "))
+            spelare_marker[i] = spelare_marker[i] - bet
+            tot += bet
+
+   return tot
+
+
+
+
+
 # steg 3
 print("------------------------------------------")
 print("Pre-game info\n")
 
+"""
 sb = int(input("small blind: "))
 bb = int(input("big blind: "))
-start_marker = int(input("antal marker vid start: "))
-spelare = int(input("antal spelare: "))
-plats = int(input("platser från dealer: "))
-
-
-
-spelare_marker = []
-for i in range(spelare):
-    spelare_marker.append(start_marker)
-
-print(spelare_marker)
-
-print("\n------------------------------------------")
-
 """
 
+start_marker = int(input("antal marker vid start: "))
+antal_spelare = int(input("antal spelare: "))
+plats = int(input("platser från dealer: "))
+
+for i in range(antal_spelare - 1):
+    spelare_marker.append(start_marker)
+
+spelare_marker.insert(plats, "jag")
+#mina_marker = start_marker
 
 
 
+#while mina_marker > 0:
+print("\n------------------------------------------")
 
 print("Pre-flop\n")
-for i in range(2):
-    player_input()
+player_input(2)
+print(" ")
 
 pre_flop_eval(valör_list,hand_rang)
-print(hand(hand_rang))
+pot += player_choice(hand(hand_rang))
+
+print(" ")
+print(f"poten: {pot} marker")
 print("\n------------------------------------------")
 
 
 
 print("Flop\n")
-for i in range(3):
-    player_input()
-
+player_input(3)
+print(" ")
+                                     
 hand_eval(list(combinations(valör_list,5)),hand_rang)
-print(hand(hand_rang))
+pot += player_choice(hand(hand_rang))
+
+print(" ")
+print(f"poten: {pot} marker")
 print("\n------------------------------------------")
 
 
 
 print("Turn\n")
-player_input()
+player_input(1)
+print(" ")
 
 hand_eval(list(combinations(valör_list,5)),hand_rang)
-print(hand(hand_rang))
+pot += player_choice(hand(hand_rang))
+
+print(" ")
+print(f"poten: {pot} marker")
 print("\n------------------------------------------")
 
 
 
 print("River\n")
-player_input()
+player_input(1)
+print(" ")
 
 hand_eval(list(combinations(valör_list,5)),hand_rang)
-print(hand(hand_rang))
+pot += player_choice(hand(hand_rang))
+
+print(" ")
+print(f"poten: {pot} marker")
 print("\n------------------------------------------\n")
 
 
 
+vinnare = int(input(f"vinnare (index): "))
+print(spelare_marker)
+print(spelare_marker[vinnare-1]+pot,pot)
+spelare_marker[vinnare-1] = spelare_marker[vinnare-1] + pot
+print(spelare_marker)
+
+
+
+
+
+
+
+"""
+for i in range(antal_spelare):
+
+    for i in range(antal_spelare - 1):
+        spelare_marker.append(start_marker)
+
+    if spelare_marker[i] == "jag":
+        #print("idk :^)")
+        print(" ")
+        print(hand(hand_rang))
+        print(" ")
+
+    else:
+        bet = int(input(f"spelare {i+1} gör: "))
+        spelare_marker[i] = spelare_marker[i]-int(bet)
+        pot += bet
+"""
+
+#spelare_marker.append(spelare_marker.pop(0))
