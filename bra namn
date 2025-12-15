@@ -20,7 +20,8 @@ kort_lista = []
 
 hand_rang = []
 
-
+spelare_marker = []
+pot = 0
 
 # steg 2
 
@@ -233,11 +234,104 @@ def spelrunda():
         else:
             hand_eval(list(combinations(valör_list,5)),hand_rang)
 
-        print(hand(hand_rang))
+
+        #spelare_beslut(hand(hand_rang))
+
+        #print(" ")
+        #print(f"pot: {69} marker") # work in progress 
+
+
+
+def spelare_bet():
+    alla_beslut = [] # sparar spelar beslut
+
+    folds = 0 # spelare som foldat 
+
+    for i in players:
+        if i  == "jag":
+            print("\njag :^) \n") # append vad jag gör 
+
+        else:
+            bet = (input(f"spelare {i+1}: "))
+            try: 
+                alla_beslut.append(int(bet))
+            except ValueError:
+                alla_beslut.append((bet))
+
+    print(alla_beslut,"\n")
+
+
+    for i in alla_beslut:
+        if i == "fold":
+            folds += 1
+            alla_beslut.remove("fold")
+
+
+    for i in range(len(alla_beslut)):
+
+        if alla_beslut[i] < max(alla_beslut):
+            bet = int(input(f"spelare {i+1}: {alla_beslut[i]} + "))
 
         
 # steg 3
 
-spelrunda()
+players = []
+
+start_marker = int(input("antal marker vid start: "))
+antal_spelare = int(input("antal spelare: "))
+plats = int(input("platser från dealer: "))
+
+for i in range(antal_spelare):
+    if i == plats:
+        players.insert(plats, "jag")
+
+    else: 
+        players.append(i)
+    
+    spelare_marker.append(start_marker)
 
 
+#print(spelare_marker)
+#print(players)
+
+
+print(" ")
+spelare_bet()
+
+
+
+
+
+#spelrunda()
+#spelare_bet(antal_spelare)
+
+
+
+
+"""
+print("------------------------------------------")
+print("Pre-game info\n")
+
+small_blind = int(input("small blind: "))
+big_blind = int(input("big blind: "))
+
+#while mina_marker > 0: 
+#note to self: spara mina marker i en separat variabek 
+
+vinnare = int(input("vinnare (index): "))
+print(spelare_marker)
+print(spelare_marker[vinnare-1]+pot,pot)
+spelare_marker[vinnare-1] = spelare_marker[vinnare-1] + pot
+print(spelare_marker)
+
+#spelare_marker.append(spelare_marker.pop(0))
+
+while True:
+    try:
+        x = int(input("x = "))
+    except ValueError:
+        pass
+    else:
+        break
+
+"""
