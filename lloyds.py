@@ -1,4 +1,3 @@
-
 """
 POKER BOT
 skapad 21/11/2025
@@ -12,25 +11,22 @@ steg 3
 """
 
 # steg 1
+
 from itertools import combinations
 
-färg_list = []
-valör_list = []
 kort_lista = []
+
+pf_rang = []
 hand_rang = []
 
-spelare_marker = []
-pot = 0
+
 
 # steg 2
 
 # tar input om kortets färg och valör
-def player_input(x):
-    for i in range(x):
-        kort = input(f"kort {len(valör_list) + 1}: ")
-        kort_lista.append(kort) # valör och färg tillsammans för färgstege
-
-        färg, valör = kort.split(" ")  # ValueError om inte split, (" ") för att garantera split
+def kort_input(antal):
+    for __ in range(antal):  # antalet kort man ska dra
+        färg, valör = input(f"kort {len(kort_lista) + 1}: ").split(" ")  # ValueError om inte split, (" ") för att garantera split
 
         # ger numeriskt värde till klädda kort
         if valör == "knäckt":
@@ -42,152 +38,129 @@ def player_input(x):
         elif valör == "kung":
             valör = 13
 
-        elif valör == "ess": # ess kan värderas som 1 och 4 i en stege
+        elif valör == "ess":    # ess kan värderas som 1 och 14 i en stege
             valör = 14
             kort_lista.append(färg + " " + "1")
-            valör_list.append(1)
 
-        # färg och valör separat
-        färg_list.append(färg)
-        valör_list.append(int(valör))   #int för enklare värdering
+        # färg + valör tillsammans
+        kort_lista.append(färg + " " + str(valör))
 
 
-
-# ger kortet med högst numeriskt värde
-def high_card(lista):
-    if sorted(lista)[-1] == 14:
-        hc = "ess"
-
-    elif sorted(lista)[-1] == 13:
-        hc = "kung"
-
-    elif sorted(lista)[-1] == 12:
-        hc = "dam"
-
-    elif sorted(lista)[-1] == 11:
-        hc = "knäckt"
-
-    elif sorted(lista)[-1] == 10:
-        hc = 10
-
-    else:
-        hc = int(sorted(lista)[-1])
-
-    return hc
 
 # handen har tvåpar = True
-def tvåpar(lista):
+def tvåpar(hand):
     antal_par = 0
 
-    for i in lista:
-        if lista.count(i) == 2:
+    for i in hand:
+        if hand.count(i) == 2:
             antal_par += 1
 
     if antal_par == 4: # count-funktionen har inte hänsyn till dubbletter
         return True
 
 # handen har par, triss, fyrtal eller färg = True
-def par_triss_fyrtal_färg(antal, lista):
-    for i in lista:
-        if lista.count(i) == antal:
+def par_triss_fyrtal_färg(antal, hand):
+    for i in hand:
+        if hand.count(i) == antal:
             return True
 
 # handen har stege = True
-def stege(lista):
-    stege = 1   # sparar antalet kort i direkt följd
+def stege(hand):
+    stegen = 1   # sparar antalet kort i direkt följd
 
     # för ett kort med index "i" är kort = förra kortet+1 (rekursivt)
-    for i in range(len(lista)):
-        if lista[i] == lista[i-1] + 1:
-           stege += 1
+    for i in range(1,len(hand)):
+        if hand[i] == hand[i-1] + 1:
+           stegen += 1
         else:
-            stege = 1
+            stegen = 1
 
-    if stege == 5:
+    if stegen == 5:
         return True
 
-# handen har färgsteg = True
-def färgsteg(lista):
-    for hand in lista:
-        temp_valör = []
-        temp_färg = []
-
-        for kort in hand:
-            f, v = kort.split()
-
-            if v == "knäckt":
-                v = 11
-
-            elif v == "dam":
-                v = 12
-
-            elif v == "kung":
-                v = 13
-
-            elif v == "ess":
-                v = 14
-
-            temp_färg.append(f)
-            temp_valör.append(int(v))
-
-        if stege(sorted(temp_valör)) and par_triss_fyrtal_färg(5,temp_färg):
-            return True
 
 
+# ger ett numeriskt värde till hållkort kombinationer
+def pre_flop_eval(hand, rang):
+    temp_valör = []
+    temp_färg = []
 
-# ger ett numeriskt värde till alla hållkort kombinationer
-def pre_flop_eval(hand,rang):
-    if par_triss_fyrtal_färg(2,hand):
+    for kort in hand:
+        f, v = kort.split(" ")
+
+        temp_färg.append(f)
+        temp_valör.append(int(v))
+
+
+    if par_triss_fyrtal_färg(2,temp_valör):
         rang.append(1)
+
     else:
-        return rang.append(0)
-
-# ger numeriskt värde till alla möjliga 5 kort kombinationer (0-8)
-def hand_eval(alla_komb,rang):
-    for hand in alla_komb:
-        # färgstege = 8
-        if färgsteg(list(combinations(kort_lista,5))): # unik iterator
-            rang.append(8)
-
-        # fyrtal = 7
-        if par_triss_fyrtal_färg(4, hand):
-            rang.append(7)
-
-        # kåk = 6
-        elif par_triss_fyrtal_färg(2, hand) and par_triss_fyrtal_färg(3, hand):
-            rang.append(6)
-
-        # färg = 5
-        elif par_triss_fyrtal_färg(5,färg_list): # unik iterator
-            rang.append(5)
-
-        # stege = 4
-        elif stege(sorted(hand)):
-            rang.append(4)
-
-        # triss = 3
-        elif par_triss_fyrtal_färg(3, hand):
-            rang.append(3)
-
-        # tvåpar = 2
-        elif tvåpar(hand):
-            rang.append(2)
-
-        # par = 1
-        elif par_triss_fyrtal_färg(2, hand):
-            rang.append(1)
-
-        # högt kort = 0
-        else:
-            rang.append(0)
+        rang.append(0)
 
     return rang
 
-# berättar vad ens bästa hand är (tillfällig)
-def hand(bäst):
-    bäst = sorted(bäst)[-1] # tar fram den bästa handen (måste vara det sista elementet)
+# ger numeriskt värde till alla 5 kort kombinationer (0-8)
+def hand_eval(hand, rang):
+    temp_valör = []
+    temp_färg = []
 
-    # utvärderar vad den bästa handen är
+    for kort in hand:
+        f, v = kort.split(" ")
+
+        temp_färg.append(f)
+        temp_valör.append(int(v))
+
+
+    # färgstege = 8
+    if stege(temp_valör) and par_triss_fyrtal_färg(5,temp_färg):
+        rang.append(8)
+        return rang
+
+    # fyrtal = 7
+    if par_triss_fyrtal_färg(4, temp_valör):
+        rang.append(7)
+        return rang
+
+    # kåk = 6
+    elif par_triss_fyrtal_färg(2, temp_valör) and par_triss_fyrtal_färg(3, temp_valör):
+        rang.append(6)
+        return rang
+
+    # färg = 5
+    elif par_triss_fyrtal_färg(5,temp_färg):
+        rang.append(5)
+        return rang
+
+    # stege = 4
+    elif stege(sorted(temp_valör)):
+        rang.append(4)
+        return rang
+
+    # triss = 3
+    elif par_triss_fyrtal_färg(3, temp_valör):
+        rang.append(3)
+        return rang
+
+    # tvåpar = 2
+    elif tvåpar(temp_valör):
+        rang.append(2)
+        return rang
+
+    # par = 1
+    elif par_triss_fyrtal_färg(2, temp_valör):
+        rang.append(1)
+        return rang
+
+    # högt kort = 0
+    else:
+        rang.append(0)
+        return rang
+
+# berättar vad ens bästa hand är (tillfällig)
+def hand(rang):
+    bäst = sorted(rang)[-1] # tar fram den bästa handen (måste vara det sista elementet)
+
     if bäst == 8:
         return "färgstege"
 
@@ -213,133 +186,36 @@ def hand(bäst):
         return "par"
 
     elif bäst == 0:
-        return f"högt kort ({high_card(valör_list)})"
+        return f"högt kort "
 
 
 
-def player_choice(rang):
-   tot = 0
-   for i in range(len(spelare_marker)):
-        if spelare_marker[i] == "jag":
-            print(" ")
-            print(rang)
-            print(" ")
+# själva spelet
+def spelrunda():
+    runda = ["Pre-flop","Flop","Turn","River",2,3,1,1]  # visa vilken runda + antalet kort man drar
+
+    for i in range(4):
+        print("\n------------------------------------------")
+        print(f"{runda[i]}\n")
+        kort_input(runda[i+4])
+        print(" ")
+
+        if i == 0:
+            for hands in list(combinations(kort_lista,2)):
+                pre_flop_eval(hands,pf_rang)
+
+            print(hand(pf_rang))
 
         else:
-            bet = int(input(f"spelare {i+1} gör: "))
-            spelare_marker[i] = spelare_marker[i] - bet
-            tot += bet
+            for hands in list(combinations(kort_lista,5)):
+                hand_eval(hands,hand_rang)
 
-   return tot
+            print(hand(hand_rang))
 
-
+        print(len(hand_rang)+len(pf_rang))
 
 
 
 # steg 3
-print("------------------------------------------")
-print("Pre-game info\n")
 
-"""
-sb = int(input("small blind: "))
-bb = int(input("big blind: "))
-"""
-
-start_marker = int(input("antal marker vid start: "))
-antal_spelare = int(input("antal spelare: "))
-plats = int(input("platser från dealer: "))
-
-for i in range(antal_spelare - 1):
-    spelare_marker.append(start_marker)
-
-spelare_marker.insert(plats, "jag")
-#mina_marker = start_marker
-
-
-
-#while mina_marker > 0:
-print("\n------------------------------------------")
-
-print("Pre-flop\n")
-player_input(2)
-print(" ")
-
-pre_flop_eval(valör_list,hand_rang)
-pot += player_choice(hand(hand_rang))
-
-print(" ")
-print(f"poten: {pot} marker")
-print("\n------------------------------------------")
-
-
-
-print("Flop\n")
-player_input(3)
-print(" ")
-                                     
-hand_eval(list(combinations(valör_list,5)),hand_rang)
-pot += player_choice(hand(hand_rang))
-
-print(" ")
-print(f"poten: {pot} marker")
-print("\n------------------------------------------")
-
-
-
-print("Turn\n")
-player_input(1)
-print(" ")
-
-hand_eval(list(combinations(valör_list,5)),hand_rang)
-pot += player_choice(hand(hand_rang))
-
-print(" ")
-print(f"poten: {pot} marker")
-print("\n------------------------------------------")
-
-
-
-print("River\n")
-player_input(1)
-print(" ")
-
-hand_eval(list(combinations(valör_list,5)),hand_rang)
-pot += player_choice(hand(hand_rang))
-
-print(" ")
-print(f"poten: {pot} marker")
-print("\n------------------------------------------\n")
-
-
-
-vinnare = int(input(f"vinnare (index): "))
-print(spelare_marker)
-print(spelare_marker[vinnare-1]+pot,pot)
-spelare_marker[vinnare-1] = spelare_marker[vinnare-1] + pot
-print(spelare_marker)
-
-
-
-
-
-
-
-"""
-for i in range(antal_spelare):
-
-    for i in range(antal_spelare - 1):
-        spelare_marker.append(start_marker)
-
-    if spelare_marker[i] == "jag":
-        #print("idk :^)")
-        print(" ")
-        print(hand(hand_rang))
-        print(" ")
-
-    else:
-        bet = int(input(f"spelare {i+1} gör: "))
-        spelare_marker[i] = spelare_marker[i]-int(bet)
-        pot += bet
-"""
-
-#spelare_marker.append(spelare_marker.pop(0))
+spelrunda()
