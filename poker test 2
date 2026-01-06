@@ -1,0 +1,314 @@
+
+# steg 1
+
+from itertools import combinations
+
+
+# berättar vad ens bästa hand är (TILLFÄLLIG)
+def hand(rang:list) -> str:
+    bäst = max(rang) # tar fram den bästa handen
+
+    if bäst == 8:
+        return "färgstege"
+
+    elif bäst == 7:
+        return "fyrtal"
+
+    elif bäst == 6:
+        return "kåk"
+
+    elif bäst == 5:
+        return "färg"
+
+    elif bäst == 4:
+        return "stege"
+
+    elif bäst == 3:
+        return "triss"
+
+    elif bäst == 2:
+        return "tvåpar"
+
+    elif bäst == 1:
+        return "par"
+
+    elif bäst == 0:
+        return f"högt kort"
+
+
+
+# steg 2
+def skapa_kortlek(lista:list[None]) -> list[str]:
+    valör = [2,3,4,5,6,7,8,9,10,11,12,13,14]    # alla valörer som tal
+    färg = ["s","k","r","h"]                    # spader, klöver, ruter, hjärter (ÄNDRA SEN)
+
+    for f in färg:
+        for v in valör:
+            lista.append(f+" "+str(v))   
+
+    return lista
+
+def kort_input(antal:int, numret:int, lista:list[str]) -> None:
+    for i in range(antal):                                    # antalet kort man ska dra
+        färg, valör = input(f"kort {i+numret}: ").split(" ")  # Note to self: ValueError om inte split, (" ") för att garantera split
+
+         # ger numeriskt värde till klädda kort
+        if valör == "knäckt":
+            valör = 11
+
+        elif valör == "dam":
+            valör = 12
+
+        elif valör == "kung":
+            valör = 13
+
+        elif valör == "ess":   
+            valör = 14
+
+        # färg + valör tillsammans
+        lista.append(färg + " " + str(valör))
+    
+
+
+# har par, tvåpar, triss, fyrtal eller färg = True
+def par_triss_fyrtal_färg(antal:int, hand:list[str], tvåpar:bool) -> bool:
+    if tvåpar:
+        antal_par = 0
+
+        for i in hand:
+            if hand.count(i) == 2:
+                antal_par += 1
+
+        if antal_par == 4: # count-funktionen har inte hänsyn till dubbletter
+            return True
+        
+    else:
+        for i in hand:
+            if hand.count(i) == antal:
+                return True
+
+# har stege = True
+def stege(hand:list[str]) -> bool:
+    stegen = 1   # sparar antalet kort i direkt följd
+
+    # ett kort med index "i" är kortet = förra kortet+1 
+    for i in range(1,len(hand)):
+        if sorted(hand)[i] == sorted(hand)[i-1] + 1:
+           stegen += 1
+        else:
+            stegen = 1
+
+    if stegen == 5:
+        return True
+    
+    elif sorted(hand) == [2,3,4,5,14]: # specialfallet då ess är lägsta kortet i en stege
+        return True
+
+
+
+# ger ett numeriskt värde till hållkort kombinationer
+def pre_flop_eval(hand:list, rang:list) -> None:
+    temp_valör = []
+    temp_färg = []
+
+    for kort in hand:
+        färg, valör = kort.split(" ")
+
+        temp_färg.append(färg)
+        temp_valör.append(int(valör))
+
+    #if all(temp_valör) and all(temp_färg) and temp_färg[0]>9:
+        #rang.append(3)
+        #return
+    
+    #if par_triss_fyrtal_färg(2,temp_valör,False) and all(temp_)
+        #rang.append(2)
+        #return
+    
+    if par_triss_fyrtal_färg(2,temp_valör,False):
+        rang.append(1)
+        return
+    
+    else:
+        rang.append(0)
+        return 
+
+# ger numeriskt värde till alla 5 kort kombinationer (0-8)
+def hand_eval(hand:list[str], rang:list[int]) -> None:
+    temp_valör = []
+    temp_färg = []
+
+    for kort in hand:
+        färg, valör = kort.split(" ")
+
+        temp_färg.append(färg)
+        temp_valör.append(int(valör))
+
+    # färgstege = 8
+    if stege(temp_valör) and par_triss_fyrtal_färg(5,temp_färg,False):
+        rang.append(8)
+        return 
+
+    # fyrtal = 7
+    elif par_triss_fyrtal_färg(4, temp_valör,False):
+        rang.append(7)
+        return 
+
+    # kåk = 6
+    elif par_triss_fyrtal_färg(2, temp_valör,False) and par_triss_fyrtal_färg(3, temp_valör,False):
+        rang.append(6)
+        return 
+
+    # färg = 5
+    elif par_triss_fyrtal_färg(5,temp_färg,False):
+        rang.append(5)
+        return 
+
+    # stege = 4
+    elif stege(temp_valör):
+    #elif 2 and 3 and 4 and 5 and 14 in hand:
+        rang.append(4)
+        return 
+
+    # triss = 3
+    elif par_triss_fyrtal_färg(3, temp_valör,False):
+        rang.append(3)
+        return 
+
+    # tvåpar = 2
+    elif par_triss_fyrtal_färg(2, temp_valör,True):
+        rang.append(2)
+        return 
+
+    # par = 1
+    elif par_triss_fyrtal_färg(2, temp_valör,False):
+        rang.append(1)
+        return 
+
+    # högt kort/inget = 0
+    else:
+        rang.append(0)
+        return 
+
+
+
+# själva spelet
+def simulation(komb:int, cc:list[str], hk:list[str], rang:list[int]):
+    sim_rang = []
+    kortlek = []   
+    win = 0
+    tie = 0 
+    lose = 0
+    skapa_kortlek(kortlek)
+
+    for kort in cc+hk:
+        if kort in kortlek:
+            kortlek.remove(kort)
+    
+    x = list(combinations(kortlek,2))
+
+    for i in x:
+        sim_rang.clear()
+
+        if komb == 2:
+            for j in list(combinations(list(i),2)):
+                pre_flop_eval(j,sim_rang)
+        else:
+            for j in list(combinations(list(i)+cc,5)):
+                hand_eval(j,sim_rang)
+
+        if max(sim_rang) < max(rang):
+            win += 1
+
+        elif max(sim_rang) == max(rang):
+            tie += 1
+        
+        else:
+            lose += 1
+            
+    return f"win: {win:<10} tie: {tie:<10} lose: {lose:<10} prob win: {(win/len(x))*100}%" #temp 
+
+def spelrunda() -> None:
+    info_runda = ["Pre-flop","Flop","Turn","River",2,3,1,1,3,6,7]  # vilken runda (0-3) + antalet kort man drar (4-7) + numret på kortet (7-10)
+    hålkort = []
+    community_card = []
+    pf_rang = []
+    hand_rang = []
+
+    for i in range(4):
+        print("\n------------------------------------------")
+        print(f"{info_runda[i]}\n\n")
+
+        if i == 0: # pre-flop utvärderas på eget sätt  
+            kort_input(info_runda[i+4],info_runda[i+7],hålkort) 
+            for hands in list(combinations(hålkort,2)):
+                pre_flop_eval(hands,pf_rang)
+
+            print(f"\n{hand(pf_rang)}") # temp
+            print(f"\n{simulation(2,community_card,hålkort,pf_rang)}") #temp
+
+        else:
+            kort_input(info_runda[i+4],info_runda[i+7],community_card)
+            for hands in list(combinations(hålkort+community_card,5)):
+                hand_eval(hands,hand_rang)
+
+            print(f"\n{hand(hand_rang)}")   # temp
+            print(f"\n{simulation(5,community_card,hålkort,hand_rang)}") # temp
+
+        print(f"\n{len(hand_rang)+len(pf_rang)}") # temp
+
+
+
+# steg 3
+
+spelrunda()
+
+
+"""
+import random
+
+def sim(sims:int, komb:int, kortlek:list[str], cc:list[str], hk:list[str], rang:list[int]) -> str:
+    sim_rang = []
+    tie = 0
+    win = 0
+
+    skapa_kortlek(kortlek)
+    for kort in cc+hk:
+        if kort in kortlek:
+            kortlek.remove(kort)
+
+    for ___ in range(sims):
+        sim_rang.clear()
+        temp_list = [i for i in cc + random.choices(kortlek,k=2)]
+
+        for hand in list(combinations(temp_list,komb)):
+            hand_eval(hand,sim_rang)
+
+        if max(sim_rang) < max(rang):
+            win += 1
+
+        elif max(sim_rang) == max(rang):
+            tie += 1
+            
+    return f"win: {win:<10} tie: {tie:<10} lose: {sims-(win+tie):<10} prob win: {(win/sims)*100}%"
+
+x = ["r 5","k 4", "k 12", "k 10", "k 6"]
+y = ["k 14", "k 13"]
+z = []
+
+for i in list(combinations(x+y,5)):
+    hand_eval(i,z)
+
+a = []
+skapa_kortlek(a)
+
+for i in x+y:
+    if i in a:
+        a.remove(i)
+
+
+print(f"{simulation(5,x,y,z)}\n")
+
+for i in range(10):
+    print(f"{sim(3000, 5, a, x, y, z)}")
+"""
