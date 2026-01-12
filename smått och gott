@@ -147,17 +147,13 @@ def simulation2(cc, hk, spl):
     kortlek = []   
     skapa_kortlek(kortlek,hk,cc)
 
-    for i in range(spl):
-        sim.clear()
-        self.clear()
-        
-        for i in range(2000):
 
-            for j in list(combinations(hk+cc+random.sample(kortlek[:52-(2*spl)],5-len(cc)),5)): # min komb. 
-                hand_eval(j,self)
+    for i in range(2000):
+        for j in list(combinations(hk+cc+random.sample(kortlek[:52-(2*spl)],5-len(cc)),5)): # min komb. 
+            hand_eval(j,self)
 
-            for j in list(combinations(cc+random.sample(kortlek[:52-(2*spl)],7-len(cc)),5)): # simulerar möjliga komb. 
-                hand_eval(j,sim)
+        for j in list(combinations(cc+random.sample(kortlek[:52-(2*spl)],7-len(cc)),5)): # simulerar möjliga komb. 
+            hand_eval(j,sim)
 
 
     for k in range(len(sim)):
