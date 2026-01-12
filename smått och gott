@@ -1,0 +1,190 @@
+
+
+from itertools import combinations
+
+
+def skapa_kortlek(lista, hålkort, com_cards):
+    valör = [2,3,4,5,6,7,8,9,10,11,12,13,14]    # alla valörer som tal
+    färg = ["s","k","r","h"]                    # spader, klöver, ruter, hjärter (ÄNDRA SEN)
+
+    for f in färg:
+        for v in valör:
+            lista.append(f+" "+str(v))   
+
+    for kort in hålkort+com_cards:
+        lista.remove(kort)
+
+    return lista
+
+    
+# har par, tvåpar, triss, fyrtal eller färg = True
+def par_triss_fyrtal_färg(antal, hand, tvåpar):
+    if tvåpar:
+        antal_par = 0
+
+        for i in hand:
+            if hand.count(i) == 2:
+                antal_par += 1
+
+        if antal_par == 4: # count-funktionen har inte hänsyn till dubbletter
+            return True
+        
+    else:
+        for i in hand:
+            if hand.count(i) == antal:
+                return True
+
+# har stege = True
+def stege(hand):
+    stegen = 1   # sparar antalet kort i direkt följd
+
+    # ett kort med index "i" är kortet = förra kortet+1 
+    for i in range(1,len(hand)):
+        if sorted(hand)[i] == sorted(hand)[i-1] + 1:
+           stegen += 1
+        else:
+            stegen = 1
+
+    if stegen == 5:
+        return True
+    
+    elif sorted(hand) == [2,3,4,5,14]: # specialfallet då ess är lägsta kortet i en stege
+        return True
+
+
+# ger numeriskt värde till alla 5 kort kombinationer (0-8)
+def hand_eval(hand, rang):
+    temp_valör = []
+    temp_färg = []
+
+    for kort in hand:
+        färg, valör = kort.split(" ")
+
+        temp_färg.append(färg)
+        temp_valör.append(int(valör))
+
+    # färgstege = 8
+    if stege(temp_valör) and par_triss_fyrtal_färg(5,temp_färg,False):
+        rang.append(8)
+        return 
+
+    # fyrtal = 7
+    elif par_triss_fyrtal_färg(4, temp_valör,False):
+        rang.append(7)
+        return 
+
+    # kåk = 6
+    elif par_triss_fyrtal_färg(2, temp_valör,False) and par_triss_fyrtal_färg(3, temp_valör,False):
+        rang.append(6)
+        return 
+
+    # färg = 5
+    elif par_triss_fyrtal_färg(5,temp_färg,False):
+        rang.append(5)
+        return 
+
+    # stege = 4
+    elif stege(temp_valör):
+    #elif 2 and 3 and 4 and 5 and 14 in hand:
+        rang.append(4)
+        return 
+
+    # triss = 3
+    elif par_triss_fyrtal_färg(3, temp_valör,False):
+        rang.append(3)
+        return 
+
+    # tvåpar = 2
+    elif par_triss_fyrtal_färg(2, temp_valör,True):
+        rang.append(2)
+        return 
+
+    # par = 1
+    elif par_triss_fyrtal_färg(2, temp_valör,False) and temp_valör[0]==14 and temp_valör[1]==14:
+        rang.append(1.5)
+        return 
+
+    # par = 1
+    elif par_triss_fyrtal_färg(2, temp_valör,False):
+        rang.append(1)
+        return 
+
+    # högt kort/inget = 0
+    else:
+        rang.append(0)
+        return 
+
+
+
+"""
+kl = []
+skapa_kortlek(kl)
+
+hk = ["r 12","h 14"]
+cc = ["s 10","h 7","k 10","s 12","s 7"]
+
+pot = 0
+for i in range(4):
+    bet = int(input(f"{i+1} bet = "))
+    pot += bet
+
+print(f"poten är {pot} senaste bet {bet}")
+print(f"pot odds = {(100*bet)/(pot+bet)}%")
+"""
+
+
+
+import random
+
+def simulation2(cc, hk, spl):
+    sim = []
+    self = []
+
+    win = 0
+    tie = 0 
+    lose = 0
+
+    kortlek = []   
+    skapa_kortlek(kortlek,hk,cc)
+
+    for i in range(spl):
+        sim.clear()
+        self.clear()
+        
+        for i in range(2000):
+
+            for j in list(combinations(hk+cc+random.sample(kortlek[:52-(2*spl)],5-len(cc)),5)): # min komb. 
+                hand_eval(j,self)
+
+            for j in list(combinations(cc+random.sample(kortlek[:52-(2*spl)],7-len(cc)),5)): # simulerar möjliga komb. 
+                hand_eval(j,sim)
+
+
+    for k in range(len(sim)):
+        if (sim)[k] < (self)[k]:
+            win += 1
+
+        elif (sim)[k] > (self)[k]:
+            lose += 1
+
+        else:
+            tie += 1
+    
+    print(win+tie+lose, len(kortlek[:52-(2*spl)]))
+    return f"win: {win:<7} tie: {tie:<7} lose: {lose:<7} %win: {round(((win+(0.5*tie))/(21*i))*100,2):<8} i = {i+1}\n" #temp 
+    
+
+
+
+hk = ["s 14","k 14"]
+
+cc1 = []                                # pre flop
+cc2 = ["k 10","h 2","h 7"]              # flop 
+cc3 = ["k 10","h 2","h 14","r 11"]       # turn 
+cc4 = ["k 10","h 2","h 7","r 11","r 4"] # river 
+
+temp = [cc1,cc2,cc3,cc4]
+
+for i in temp:
+#for i in range(4):
+    print(simulation2(i,hk,2))
