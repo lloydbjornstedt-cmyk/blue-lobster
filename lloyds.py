@@ -3,7 +3,7 @@ POKER BOT
 skapad: 21/11/2025
 skapare: Lloyd Björnstedt
 
-Ett programm som ska fatta beslut åt användaren i spelet Texas hold'em
+Ett program som ska fatta beslut åt användaren i spelet "Texas hold'em" baserat på korten som tilldelas
 
 Stegen 1-4 deklarerar funktioner
 steg 1 - skapa kortlek + input från användaren och sparar datan + importerar itertools
@@ -16,6 +16,9 @@ steg 5 - exikverar
 from itertools import combinations as comb
 import random
 
+#import time
+# start = time.perf_counter()
+# stop = time.perf_counter()
 
 # skapar en kortlek
 def skapa_kortlek(lista, kända_kort):
@@ -59,7 +62,7 @@ def bästa_kort(hand, stege=False, div=100, antal=0):
         if sorted(hand) == [2, 3, 4, 5, 14]:
             return 0.05
         else:
-            return (sorted(hand)[-1])/100
+            return max(hand)/100
 
     else:
         for kort in hand:
@@ -145,7 +148,7 @@ def hand_eval(hand, rang):
 
     # tvåpar = 2
     elif par_triss_fyrtal_färg(2, temp_valör, True):
-        rang.append(2 + bästa_kort(temp_valör[::-1], antal=2) + bästa_kort(sorted(temp_valör), antal=2, div=10000))
+        rang.append(2 + bästa_kort(sorted(temp_valör)[::-1], antal=2) + bästa_kort(sorted(temp_valör), antal=2, div=10000))
         return
 
     # par = 1
@@ -168,19 +171,13 @@ def simulering(cc, hk, iter=100):
     skapa_kortlek(kortlek, hk + cc)
     x = 5 - len(cc)
 
-    komb = list(comb(kortlek,2))
-
     for __ in range(iter):
-        for i in komb:
-            kortlek.clear()
-            skapa_kortlek(kortlek, hk + cc + list(i))
-            y = random.sample(kortlek, 5)
+        y = random.sample(kortlek, 7)
+        a = random.sample(hk + cc + y[:x], 5)
+        b = random.sample(cc + y[:x+2], 5)
 
-            for j in list(comb(hk + cc + y[:x], 5)):  # min komb.
-                hand_eval(j, self)
-
-            for j in list(comb(list(i) + cc + y[:x], 5)):  # simulerar möjliga komb.
-                hand_eval(j, sim)
+        hand_eval(a, self)
+        hand_eval(b, sim)
 
     bäst = max(self)
     for self1, sim1 in zip(self, sim):
@@ -203,8 +200,24 @@ def simulering(cc, hk, iter=100):
             else:
                 tie += 1
 
-    print(win + tie + lose, len(kortlek))  # temp
-    return f"win: {win:<7} tie: {tie:<7} lose: {lose:<7} %win: {((win + (0.5 * tie)) / (win + tie + lose)) * 100:.2f} \n"  # temp
+    wins = ((win + (0.5 * tie)) / (win + tie + lose)) * 100
+    print(win + tie + lose, len(kortlek))
+    print(f"win: {win:<7} tie: {tie:<7} lose: {lose:<7} %win: {wins:.2f} \n")
+    #return wins
+
+# säger vad spelaren ska göra
+def beslut(win_chans):
+    call = int(input(f"syna: "))
+    pot = int(input(f"pot: "))
+
+    odds = (call/(pot+call))*100
+
+    if win_chans >= odds:
+        print("call")
+        print(f"{odds:.2f} | {win_chans}")
+    else:
+        print("fold")
+        print(f"{odds} | {win_chans}")
 
 # själva spelrundan
 def spelrunda():
@@ -218,28 +231,27 @@ def spelrunda():
 
         if runda == "Pre-flop":
             kort_input(antal_kort, len(hålkort + community_cards) + 1, hålkort)
-            print(f"\n{simulering(community_cards, hålkort, 500)}")
 
         else:
             kort_input(antal_kort, len(hålkort + community_cards) + 1, community_cards)
-            print(f"\n{simulering(community_cards, hålkort, 500)}")
+
+        x = simulering(community_cards, hålkort, 1000)
+        beslut(x)
 
 
 #spelrunda()
 
 
-def beslut():
-    pass
+hk = ["s 3", "h 11"]
 
-
-hk = ["k 14", "r 14"]
-
-cc1 = []                                        # pre flop
-cc2 = ["h 7", "h 11", "r 4"]                   # flop
-cc3 = ["h 7", "h 11", "r 4", "k 2"]            # turn
-cc4 = ["h 7", "h 11", "r 4", "k 2", "s 7"]     # river
+cc1 = []
+cc2 = ["r 3", "s 9", "s 5"]
+cc3 = ["r 3", "s 9", "s 5", "h 12"]
+cc4 = ["r 3", "s 9", "s 5", "h 12", "s 6"]
 
 temp = [cc1, cc2, cc3, cc4]
 
 for i in temp:
-    print(simulering(i, hk, 1))
+    simulering(i, hk, 100)
+
+
