@@ -1,0 +1,314 @@
+
+
+from itertools import combinations as comb
+from functools import lru_cache as cache
+import random
+import time
+
+
+hash_lookup = {}
+
+
+def hash_funktion(hand):
+    primtal = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41]
+    prim_hash = 1
+    flush = True
+    färg = hand[0][0]
+
+    for f, v in hand:
+        prim_hash *= primtal[v-2]
+        if f != färg:
+            flush = False
+
+    if flush:
+        prim_hash *= 43
+
+    return prim_hash
+
+def skapa_kortlek(kända_kort = []):
+    färg = ["s", "k", "r", "h"]  # spader, klöver, ruter, hjärter (ÄNDRA SEN)
+    lista = []                   # blivande kortlek 
+
+    # skapar listan och tar bort reda kända kort
+    lista = [(f,v) for f in färg for v in range(2,15) if (f,v) not in kända_kort]
+
+    return lista
+
+
+
+
+
+def bästa_kort(hand, stege=False, mul=100, index=-1, antal=0):
+    # stege ger det bästa kortet i handen (används mer än bara för stege)
+    if stege:
+        temp_hand = []
+
+        for kort in hand:
+            if kort not in temp_hand:
+                temp_hand.append(kort)
+
+        if temp_hand == [2, 3, 4, 5, 14]: # specialfall då ess = 1
+            temp_hand.remove(14)           
+        
+        return temp_hand[index] * mul
+
+    else:
+        for kort in hand:
+            if hand.count(kort) == antal:
+                return kort * mul
+    
+    return 0
+
+# har par, tvåpar, triss, fyrtal eller färg -> True
+def par_triss_fyrtal_färg(hand, antal, tvåpar=False):
+    if tvåpar:
+        antal_par = 0
+
+        for kort in hand:
+            if hand.count(kort) == 2:
+                antal_par += 1
+
+        if antal_par == 4:  # count-funktionen har inte hänsyn till dubbletter
+            return True
+
+    else:
+        for kort in hand:
+            if hand.count(kort) == antal:
+                    return True
+            
+    return False
+
+# har stege -> True
+def stege(hand):
+    stegen = 1  # sparar antalet kort i direkt följd
+
+    # kort med index "i" är kortet = förra kortet+1
+    for i in range(1, 5):
+        if hand[i] == hand[i - 1] + 1:
+            stegen += 1
+
+    if stegen == 5:
+        return True
+
+    elif hand == [2, 3, 4, 5, 14]:  # specialfallet då ess är lägsta kortet i en stege
+        return True
+    
+    return False
+
+#@cache(maxsize= 100_000)
+def hand_eval(hand):
+
+    temp_valör = []
+    temp_färg = []
+
+    for kort in hand:
+        färg, valör = kort
+
+        temp_färg.append(färg)
+        temp_valör.append(valör)
+        
+    sort_valör = sorted(temp_valör)
+
+    # färgstege = 8
+    if stege(sort_valör) and par_triss_fyrtal_färg(temp_färg, 5):
+        return (80_000 + bästa_kort(sort_valör, stege=True) + bästa_kort(sort_valör, stege=True, index=-2, mul=1))
+
+    # fyrtal = 7
+    elif par_triss_fyrtal_färg(temp_valör, 4):
+        return ((70_000 + bästa_kort(sort_valör, antal=4)))
+
+    # kåk = 6
+    elif par_triss_fyrtal_färg(temp_valör, 2) and par_triss_fyrtal_färg(temp_valör, 3):
+        return (60_000 + bästa_kort(temp_valör, antal=3) + bästa_kort(temp_valör, antal=2, mul=1))
+
+    # färg = 5
+    if par_triss_fyrtal_färg(temp_färg, 5):
+        return (50_000 + bästa_kort(sort_valör, stege=True) + bästa_kort(sort_valör, stege=True, index=-2, mul=1))
+
+    # stege = 4
+    elif stege(sort_valör):
+        return(40_000 + bästa_kort(sort_valör, stege=True) + bästa_kort(sort_valör, stege=True, index=-2, mul=1))
+
+    # triss = 3
+    elif par_triss_fyrtal_färg(temp_valör, 3):
+        return (30_000 + bästa_kort(temp_valör, antal=3))
+
+    # tvåpar = 2
+    elif par_triss_fyrtal_färg(temp_valör, 2, True):
+        return (20_000 + bästa_kort(sort_valör[::-1], antal=2) + bästa_kort(sort_valör, antal=2, mul=1))
+            
+
+    # par = 1
+    elif par_triss_fyrtal_färg(temp_valör, 2):
+        return (10_000 + bästa_kort(temp_valör, antal=2))
+
+    # högt kort/inget = 0
+    else:
+        return (0 + bästa_kort(sort_valör, stege=True) + bästa_kort(sort_valör, stege=True, index=-2, mul=1))
+
+
+
+
+
+
+
+def hash_funktion2(hand):
+    primtal = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41]
+    prim_hash = 1
+
+    for v in hand:
+        prim_hash *= primtal[v-2]
+
+    return prim_hash
+
+
+@cache(maxsize= 500_000)
+# utvärderar hand med 5 kort
+def hand_eval_7(hand_7):
+    bästa_komb = []
+
+    for hand_5 in list(comb(hand_7,5)):
+        temp_valör = []
+        temp_färg = []
+
+        x = hash_funktion(hand_5)
+        if x in hash_lookup:
+            bästa_komb.append(hash_lookup[x])
+            
+        else:
+            for kort in hand_5:
+                färg, valör = kort
+
+                temp_färg.append(färg)
+                temp_valör.append(valör)
+            
+            sort_valör = sorted(temp_valör)
+            
+            # färgstege = 8
+            if stege(sort_valör) and par_triss_fyrtal_färg(temp_färg, 5):
+                bästa_komb.append(80_000 + bästa_kort(sort_valör, stege=True) + bästa_kort(sort_valör, stege=True, index=-2, mul=1))
+                continue
+
+            # fyrtal = 7
+            elif par_triss_fyrtal_färg(sort_valör, 4):
+                bästa_komb.append((70_000 + bästa_kort(sort_valör, antal=4)))
+                continue
+
+            # kåk = 6
+            elif par_triss_fyrtal_färg(sort_valör, 2) and par_triss_fyrtal_färg(sort_valör, 3):
+                bästa_komb.append(60_000 + bästa_kort(sort_valör, antal=3) + bästa_kort(sort_valör, antal=2, mul=1))
+                continue
+
+        # färg = 5
+            if par_triss_fyrtal_färg(temp_färg, 5):
+                bästa_komb.append(50_000 + bästa_kort(sort_valör, stege=True) + bästa_kort(sort_valör, stege=True, index=-2, mul=1))
+                continue
+
+        # stege = 4
+            elif stege(sort_valör):
+                bästa_komb.append(40_000 + bästa_kort(sort_valör, stege=True) + bästa_kort(sort_valör, stege=True, index=-2, mul=1))
+                continue
+
+        # triss = 3
+            elif par_triss_fyrtal_färg(sort_valör, 3):
+                bästa_komb.append(30_000 + bästa_kort(sort_valör, antal=3))
+                continue
+
+        # tvåpar = 2
+            elif par_triss_fyrtal_färg(sort_valör, 2, True):
+                    bästa_komb.append(20_000 + bästa_kort(sort_valör[::-1], antal=2) + bästa_kort(sort_valör, antal=2, mul=1))
+                    continue
+
+        # par = 1
+            elif par_triss_fyrtal_färg(sort_valör, 2):
+                bästa_komb.append(10_000 + bästa_kort(sort_valör, antal=2))
+                continue
+
+        # högt kort/inget = 0
+            else:
+                bästa_komb.append(0 + bästa_kort(sort_valör, stege=True) + bästa_kort(sort_valör, stege=True, index=-2, mul=1))
+                continue
+  
+    return max(bästa_komb)
+
+def simulering2(cc, hk, iter, spelare=1): 
+    win = tie = 0
+    kortlek = skapa_kortlek(hk + cc)
+    kort_kvar = 5 - len(cc)               
+
+    for __ in range(iter):
+        urval_kort = random.sample(kortlek, kort_kvar+2)
+        bord = cc + urval_kort[:kort_kvar]
+        opp_hk = urval_kort[kort_kvar:]
+
+        p1 = hand_eval_7(tuple(sorted(hk+bord)))
+        p2 = hand_eval_7(tuple(sorted(opp_hk+bord)))
+        
+        if p2 < p1:
+            win += 1
+
+        elif p2 == p1:
+            tie += 1
+
+    equity = (win + (0.5 * tie)) / iter
+
+    print(len(kortlek), iter)
+    print(f"win: {win:<7} tie: {tie:<7} lose: {(iter)-(win+tie):<7} %win: {100*equity:.2f}")
+    return equity
+
+
+
+
+
+hk = [("r",14), ("s",14)]
+
+cc1 = []
+cc2 = [("s",13), ("h",9), ("s",4)]
+cc3 = [("s",13), ("h",9), ("s",4), ("r",3)]
+cc4 = [("s",13), ("h",9), ("s",4), ("r",3), ("r",7)]
+
+cc5 = [cc1, cc2, cc3, cc4]
+
+start1 = time.perf_counter()
+kl = skapa_kortlek()
+for i in list(comb(kl,5)):
+    x = hash_funktion(i)
+    if x not in hash_lookup:
+        hash_lookup[x] = hand_eval(i)
+stop1 = time.perf_counter()
+print(f"{stop1-start1:.4f}\n")
+
+
+for i in cc5:
+    start = time.perf_counter()
+    simulering2(i, hk, 10_000)
+    print(hand_eval_7.cache_info())
+    stop = time.perf_counter()
+    print(f"{stop-start:.4f}\n")
+
+
+
+"""
+kl = skapa_kortlek()
+for i in list(comb(kl,5)):
+    x = hash_funktion(i)
+    if x not in hash_lookup:
+        hash_lookup[x] = hand_eval(tuple(i))
+
+
+färg = []
+valör = []
+cc11 = (("s",2), ("s",3), ("r",3), ("s",5), ("s",10))
+
+
+for f,v in cc11:
+    färg.append(f)
+    valör.append(v)
+
+a = tuple(sorted(valör))
+b = hash_funktion(cc11)
+
+print(färg, len(set(färg)))
+print(a, b, hash_lookup[b])
+
+"""
