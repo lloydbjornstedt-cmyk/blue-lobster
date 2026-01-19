@@ -36,8 +36,6 @@ import random
 import pickle
 import os
 
-import time  # start = time.perf_counter() # stop = time.perf_counter()
-
 
 
 # ------- STEG 1 -------
@@ -75,31 +73,28 @@ def kort_input(antal_kort, num_kort, lista):
         tuple_kort = (färg, int(valör))
         lista.append(tuple_kort)
 
-    # skapar en hash-nyckel för varje kort
-
-
 
 # skapar hash-nyckel för en 5-kort hand
 def hash_funktion(hand):
     primtal = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41]
-    prim_hash = 1
+    prim_key = 1
     flush = True
     färg = hand[0][0]
 
     for f, v in hand:
-        prim_hash *= primtal[v - 2]
+        prim_key *= primtal[v - 2]
         if f != färg:
             flush = False
 
     if flush:
-        prim_hash *= 43
+        prim_key *= 43
 
-    return prim_hash
+    return prim_key
 
 # letar genom hash-nycklar och ger hands värde
-def hash_eval(hand):
+def hash_eval(hand, map):
     key = hash_funktion(hand)
-    return hash_lookup[key]
+    return map[key]
 
 
 
@@ -263,7 +258,7 @@ def hand_eval(hand):
         return (0 + bästa_kort(sort_valör, "stege"))
 
 # bestämmer sannolikhet för vinst
-def simulering(cc, hk, iter):
+def simulering(map, cc, hk, iter):
     win = tie = 0
     kortlek = skapa_kortlek(hk + cc)
     kort_kvar = 5 - len(cc)  # antalet kort som ska ut på bordet
@@ -273,8 +268,8 @@ def simulering(cc, hk, iter):
         bord = cc + urval_kort[:kort_kvar]
         opp_hk = urval_kort[kort_kvar:]
 
-        p1 = max(hash_eval(i) for i in comb(hk + bord, 5))
-        p2 = max(hash_eval(i) for i in comb(opp_hk + bord, 5))
+        p1 = max(hash_eval(i, map) for i in comb(hk + bord, 5))
+        p2 = max(hash_eval(i, map) for i in comb(opp_hk + bord, 5))
 
         if p2 < p1:
             win += 1
@@ -292,18 +287,20 @@ def simulering(cc, hk, iter):
 
 # ------- STEG 4 -------
 
-# om pickle-filen inte finns skapas en 
+# om pkl-filen inte finns skapas en 
 def skapa_pickle_fil():
     kl = skapa_kortlek()
+    ny_lookup = {}
+
     for hand in comb(kl, 5):
         hash_hand = hash_funktion(hand)
-        if hash_hand not in hash_lookup:
-            hash_lookup[hash_hand] = hand_eval(hand)
+        if hash_hand not in ny_lookup:
+            ny_lookup[hash_hand] = hand_eval(hand)
 
-    return hash_lookup
+    return ny_lookup
 
-# laddar pickle-filen och fyller hash_lookup 
-def ladda_pickle():
+# laddar pkl-filen och fyller hash_lookup 
+def ladda_pickle_fil():
     cache_fil = 'poker_hash_cache.pkl'
 
     if os.path.exists(cache_fil):
@@ -316,7 +313,7 @@ def ladda_pickle():
         hash_dict = skapa_pickle_fil()
         with open(cache_fil, 'wb') as f:
             pickle.dump(hash_dict, f)
-        print("Tabell genererad och sparad!")
+        print("Hash map genererad och sparad!")
         return hash_dict
 
 # säger vad spelaren ska göra
@@ -327,14 +324,14 @@ def beslut(win_chans):
     odds = call / (pot + call)
 
     if win_chans >= odds:
-        print("call")
-        print(f"{100 * odds:.2f} | {100 * win_chans}")
+        print("\ncall")
+        print(f"behövs: {100 * odds:.2f} | jag har: {100 * win_chans:.2f}")
     else:
-        print("fold")
-        print(f"{100 * odds:.2f} | {100 * win_chans}")
+        print("\nfold")
+        print(f"behövs: {100 * odds:.2f} | jag har: {100 * win_chans:.2f}")
 
 # själva spelrundan
-def spelrunda():
+def spelrunda(map):
     hålkort = []
     community_cards = []
     info = {"Pre-flop": (2, 1, hålkort), "Flop": (3, 3, community_cards), "Turn": (1, 6, community_cards), "River": (1, 7, community_cards)}
@@ -346,33 +343,32 @@ def spelrunda():
         kort_input(kort_antal, kort_num, kort_lista)
 
         print("\n")
-        x = simulering(community_cards, hålkort, 10_000)
-        #beslut(x)
+        res_sim = simulering(map, community_cards, hålkort, 20_000)
+        print("\n")
+        beslut(res_sim)
 
 
 
 # ------- STEG 5 -------
 
 def main():
+    hash_lookup = ladda_pickle_fil()
     if not hash_lookup:
         print("VARNING: hash_lookup är tom")
     else:
         print("Allting ser bra ut")
 
-    spelrunda()
+    spelrunda(hash_lookup)
 
 if __name__ == "__main__":
-    hash_lookup = ladda_pickle()
-    #main()
-
-
+    main()
 
 
         
 
 
 
-
+import time  # start = time.perf_counter() # stop = time.perf_counter()
 
 hk = [("h", 14), ("s", 10)]
 
