@@ -6,12 +6,15 @@ Skapare: Lloyd Björnstedt
 
 Ett program som ska fatta beslut åt användaren i spelet "Texas hold'em" baserat på korten som tilldelas
 
-(Stegen 1-4 deklarerar funktioner)
-STEG 1* - skapa kortlek + input från användaren (sparar korten) + importerar itertools och random
-STEG 2  - kunna utvärdera alla kombinatioer
-STEG 3* - avgör bästa 5-kort handen + bästa kortet i kombinationen
-STEG 4* - själva spelrundan + funktionen som säger vad spelaren ska göra
-STEG 5  - återkallar spelrunda-fumktionen (spelar spelet på riktigt)
+(Stegen 2-6 deklarerar funktioner)
+STEG 1* - 
+STEG 2  - 
+STEG 3* - 
+STEG 4* - 
+STEG 5  -
+STEG 6  - 
+
+Mer information står vid respektive steg om det behövs.  
 
 * Hur nödvändig information om ett kort sparas (STEG 1)
 Alla kort sparas som en sträng där färgen förkortas till första bokstaven och valören ges ett numeriskt värde
@@ -32,27 +35,30 @@ Viss information ges men i koden men läsaren kan behöva söka upp mer informai
 
 from itertools import combinations as comb
 from collections import Counter
+from functools import lru_cache as cache
 import random
 import pickle
 import os
 
 
 
-# ------- STEG 1 -------
+# ------- STEG 2 -------
 
 # skapar en kortlek
 def skapa_kortlek(kända_kort=None):
+    # gör känd_kort till en lista eftersom mutable keyword är katastrof 
     if kända_kort is None:
-        kända_kort = []
+        kända_kort = [] 
+
     färg = ["s", "k", "r", "h"]  # spader, klöver, ruter, hjärter (ÄNDRA SEN)
 
-    # skapar listan och tar bort reda kända kort
+    # skapar kortleken och tar bort reda kända kort
     lista = [(f, v) for f in färg for v in range(2, 15) if (f, v) not in kända_kort]
 
     return lista
 
 # tar input från användaren
-def kort_input(antal_kort, num_kort, lista):
+def kort_input(antal_kort:int, num_kort:int, lista:list):
     for i in range(antal_kort):  # antalet kort man ska dra
         färg, valör = input(f"kort {i + num_kort}: ").lower().split(" ") # .lower() ifall användaren skriver med stora bokstäver
         # Note to self: ValueError om inte split, (" ") för att garantera split
@@ -70,104 +76,20 @@ def kort_input(antal_kort, num_kort, lista):
         elif valör == "ess":
             valör = 14
 
-        tuple_kort = (färg, int(valör))
+        tuple_kort = (färg, int(valör)) # sparar kort som en tuple 
         lista.append(tuple_kort)
 
 
-# skapar hash-nyckel för en 5-kort hand
-def hash_funktion(hand):
-    primtal = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41]
-    prim_key = 1
-    flush = True
-    färg = hand[0][0]
 
-    for f, v in hand:
-        prim_key *= primtal[v - 2]
-        if f != färg:
-            flush = False
+# ------- STEG 3 -------
+# funktioner för att avgöra styrkan på en 5-korts hand 
+# par_triss_fyrtal_färg räknar förekomsten av en valör eller färg 
+# stege avgör om alla valörer är i direkt följd 
+# 
+# hand_eval sätter ihop allt och ger ett numeriskt värde till varje hand 
 
-    if flush:
-        prim_key *= 43
-
-    return prim_key
-
-# letar genom hash-nycklar och ger hands värde
-def hash_eval(hand, map):
-    key = hash_funktion(hand)
-    return map[key]
-
-
-
-# ------- STEG 2 -------
-
-# bestämmer bästa kortet i kombinationen
-def bästa_kort(hand, komb):
-
-    temp_dict = Counter(hand)
-    poäng = 0
-    no_dup_hand = []
-
-    for kort in hand:
-        if kort not in no_dup_hand:
-            no_dup_hand.append(kort)
-
-    if komb == "stege": # stege ger det bästa kortet i handen (används mer än bara för stege)
-        if hand == [2, 3, 4, 5, 14]:  # specialfall då ess = 1
-            hand.remove(14)           # ess är inte det bästa kortet i detta fall
-
-        return (hand[-1] * 10_000) + (hand[-2] * 100) + (hand[-3])
-
-    elif komb == "kåk":
-        for val, ant in temp_dict.items():
-            if ant == 3:
-                poäng  += (val*10_000)
-
-            elif ant == 2:
-                poäng  += (val*100)
-
-        return poäng 
-
-    elif komb == "fyrtal":
-        for val, ant in temp_dict.items():
-            if ant == 4:
-                poäng  += (val * 10_000)
-
-            elif ant == 1:
-                poäng  += (val * 100)
-
-        return poäng 
-    
-    elif komb == "triss":
-        for val, ant in temp_dict.items():
-            if ant == 3:
-                poäng  += (val * 10_000)
-                no_dup_hand.remove(val)
-
-        return poäng  + (no_dup_hand[-1]*100) + no_dup_hand[-2]
-
-
-    elif komb == "tvåpar":
-        tvåpar = []
-        for val, ant in temp_dict.items():
-            if ant == 2:
-                tvåpar.append(val)
-                no_dup_hand.remove(val)
-
-        sort_tvåpar = sorted(tvåpar)
-        return (sort_tvåpar[1] * 10_000) + (sort_tvåpar[0]*100) + no_dup_hand[0]
-
-    elif komb == "par":
-        for val, ant in temp_dict.items():
-            if ant == 2:
-                poäng += (val * 10_000)
-                no_dup_hand.remove(val)
-
-        return poäng + (no_dup_hand[-1] * 100) + (no_dup_hand[-2])
-
-    return 0
-
-# har par, tvåpar, triss, fyrtal eller färg -> True
-def par_triss_fyrtal_färg(hand, antal, tvåpar=False):
+# har par, tvåpar, triss, fyrtal eller färg ger funktionen True
+def par_triss_fyrtal_färg(hand:tuple, antal:int, tvåpar=False) -> bool:
     hand_dict = Counter(hand)
 
     if tvåpar:
@@ -187,8 +109,8 @@ def par_triss_fyrtal_färg(hand, antal, tvåpar=False):
 
     return False
 
-# har stege -> True
-def stege(hand):
+# har stege ger funktionen True
+def stege(hand:tuple) -> bool:
     stegen = 1  # sparar antalet kort i direkt följd
 
     # kort med index "i" är kortet = förra kortet+1
@@ -204,12 +126,76 @@ def stege(hand):
 
     return False
 
+# bestämmer bästa kortet i kombinationen (tie-breaker)
+def bästa_kort(hand:tuple, komb:str) -> int:
+    # flera händer kan ha samma kombination och då vinner den som har bästa korten i kombinationen
+    # den här funktionen ger 2-3 av handens bästa kort 
+
+    temp_dict = Counter(hand) # key = valör, value = antalet av valören 
+    no_dup_hand = [] # 
+    poäng = 0
+
+    for kort in hand:
+        if kort not in no_dup_hand:
+            no_dup_hand.append(kort)
+
+    if komb == "stege": # stege ger de 3 bästa korten i handen (används mer än bara för stege)
+        if hand == [2, 3, 4, 5, 14]:  # specialfall då ess = 1
+            hand.remove(14)           # ess är inte det bästa kortet i detta fall
+
+        return (hand[-1] * 10_000) + (hand[-2] * 100) + (hand[-3])
+
+    elif komb == "kåk":
+        for val, ant in temp_dict.items():
+            if ant == 3: 
+                poäng  += (val*10_000) # valör för triss * 10 000
+
+            elif ant == 2: # par
+                poäng  += (val*100) # valör för par * 100
+
+        return poäng # eftersom triss trumfar par ger triss:en mer poäng 
+
+    elif komb == "fyrtal":
+        for val, ant in temp_dict.items():
+            if ant == 4: 
+                poäng  += (val * 10_000) # valör för fyrtal * 10 000
+
+            elif ant == 1:
+                poäng  += (val * 100) # högsta kortet * 100 
+
+        return poäng 
+    
+    elif komb == "triss":
+        for val, ant in temp_dict.items():
+            if ant == 3:
+                poäng  += (val * 10_000)
+                no_dup_hand.remove(val) 
+
+        return poäng  + (no_dup_hand[-1]*100) + no_dup_hand[-2]
 
 
-# ------- STEG 3 -------
+    elif komb == "tvåpar":
+        tvåpar = []
+        for val, ant in temp_dict.items():
+            if ant == 2:
+                tvåpar.append(val)
+                no_dup_hand.remove(val)
+
+        sort_tvåpar = sorted(tvåpar) # sorterar par-valörerna för att det bästa paret ska ge mest poäng 
+        return (sort_tvåpar[1] * 10_000) + (sort_tvåpar[0]*100) + no_dup_hand[0]
+
+    elif komb == "par":
+        for val, ant in temp_dict.items():
+            if ant == 2:
+                poäng += (val * 10_000)
+                no_dup_hand.remove(val)
+
+        return poäng + (no_dup_hand[-1] * 100) + (no_dup_hand[-2])
+
+    return 0
 
 # utvärderar hand med 5 kort
-def hand_eval(hand):
+def hand_eval(hand:tuple):
     temp_valör = []
     temp_färg = []
 
@@ -257,24 +243,64 @@ def hand_eval(hand):
     else:
         return (0 + bästa_kort(sort_valör, "stege"))
 
+
+
+# ------- STEG 4 -------
+
+# skapar hash-nyckel för en 5-kort hand
+def hash_funktion(hand:tuple) -> int:
+    primtal = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41]
+    prim_key = 1
+    flush = True
+    färg = hand[0][0]
+
+    for f, v in hand:
+        prim_key *= primtal[v - 2]
+        if f != färg:
+            flush = False
+
+    if flush:
+        prim_key *= 43
+
+    return prim_key
+
+# letar genom hash-nycklar och ger hands värde
+def hash_get(hand:tuple) -> int:
+    key = hash_funktion(hand)
+    return hash_lookup[key]
+
+@cache(maxsize=40_000)
+def hash_eval_7(hand_7:tuple) -> int:
+    return max(hash_get(hand_5) for hand_5 in comb(hand_7,5))
+
 # bestämmer sannolikhet för vinst
-def simulering(map, cc, hk, iter):
+def simulering(cc:list, hk:list, iter:int, spelare=1,) -> float:
     win = tie = 0
     kortlek = skapa_kortlek(hk + cc)
     kort_kvar = 5 - len(cc)  # antalet kort som ska ut på bordet
 
     for __ in range(iter):
-        urval_kort = random.sample(kortlek, kort_kvar + 2)
+        behövs = kort_kvar + (spelare * 2)
+        urval_kort = random.sample(kortlek, behövs)
         bord = cc + urval_kort[:kort_kvar]
-        opp_hk = urval_kort[kort_kvar:]
+        bäst_motsåndare = 0
 
-        p1 = max(hash_eval(i, map) for i in comb(hk + bord, 5))
-        p2 = max(hash_eval(i, map) for i in comb(opp_hk + bord, 5))
+        #jag_poäng = max(hash_get(i) for i in comb(hk + bord, 5))
+        jag_poäng = hash_eval_7(tuple(sorted(hk + bord)))
 
-        if p2 < p1:
+        for i in range(spelare):
+            start = kort_kvar + (i*2)
+            opp_hk = urval_kort[start : start+2]
+            #motståndare_poäng = max(hash_get(i) for i in comb(opp_hk + bord, 5))
+            motståndare_poäng = hash_eval_7(tuple(sorted(opp_hk + bord)))
+
+            if motståndare_poäng > bäst_motsåndare:
+                bäst_motsåndare = motståndare_poäng
+
+        if bäst_motsåndare < jag_poäng :
             win += 1
 
-        elif p2 == p1:
+        elif bäst_motsåndare == jag_poäng :
             tie += 1
 
     equity = (win + (0.5 * tie)) / iter
@@ -285,10 +311,10 @@ def simulering(map, cc, hk, iter):
 
 
 
-# ------- STEG 4 -------
+# ------- STEG 5 -------
 
-# om pkl-filen inte finns skapas en 
-def skapa_pickle_fil():
+# om pickle-filen inte finns skapas en 
+def skapa_pickle_fil() -> dict:
     kl = skapa_kortlek()
     ny_lookup = {}
 
@@ -299,8 +325,8 @@ def skapa_pickle_fil():
 
     return ny_lookup
 
-# laddar pkl-filen och fyller hash_lookup 
-def ladda_pickle_fil():
+# laddar pickle-filen och fyller hash_lookup 
+def ladda_pickle_fil() -> dict:
     cache_fil = 'poker_hash_cache.pkl'
 
     if os.path.exists(cache_fil):
@@ -317,7 +343,7 @@ def ladda_pickle_fil():
         return hash_dict
 
 # säger vad spelaren ska göra
-def beslut(win_chans):
+def beslut(win_chans:float) -> int:
     call = int(input(f"syna: "))
     pot = int(input(f"pot: "))
 
@@ -329,12 +355,17 @@ def beslut(win_chans):
     else:
         print("\nfold")
         print(f"behövs: {100 * odds:.2f} | jag har: {100 * win_chans:.2f}")
+    
+    return call
 
 # själva spelrundan
-def spelrunda(map):
+def spelrunda() -> None:
     hålkort = []
     community_cards = []
     info = {"Pre-flop": (2, 1, hålkort), "Flop": (3, 3, community_cards), "Turn": (1, 6, community_cards), "River": (1, 7, community_cards)}
+
+    antal_spelare = int(input(f"antal motspelare: "))
+    start_marker = int(input(f"antal marker vid start: "))
 
     for runda, kort in info.items():
         kort_antal, kort_num, kort_lista = kort
@@ -343,29 +374,29 @@ def spelrunda(map):
         kort_input(kort_antal, kort_num, kort_lista)
 
         print("\n")
-        res_sim = simulering(map, community_cards, hålkort, 20_000)
+        res_sim = simulering(community_cards, hålkort, 10_000, spelare=antal_spelare)
         print("\n")
-        beslut(res_sim)
+        bet = beslut(res_sim)
+        start_marker -= bet
+
+    hash_eval_7.cache_clear()
 
 
+# ------- STEG 6 -------
 
-# ------- STEG 5 -------
-
-def main():
-    hash_lookup = ladda_pickle_fil()
+def main() -> None:
     if not hash_lookup:
-        print("VARNING: hash_lookup är tom")
+        print(f"VARNING: hash_lookup är tom\n------------------------------------------\n")
     else:
-        print("Allting ser bra ut")
+        print(f"Alltingser bra ut\n------------------------------------------\n")
 
-    spelrunda(hash_lookup)
+    #spelrunda()
 
 if __name__ == "__main__":
+    hash_lookup = ladda_pickle_fil() # global variabel (inte optimalt men gör livet MYCKET enklare)
     main()
-
-
-        
-
+    
+    
 
 
 import time  # start = time.perf_counter() # stop = time.perf_counter()
@@ -382,20 +413,9 @@ temp = [cc1, cc2, cc3, cc4]
 
 for i in temp:
     start = time.perf_counter()
-    simulering(i, hk, 30_000)
+    simulering(i, hk, 20_000, spelare=1)
+    #print(hash_eval_7.cache_info())
     stop = time.perf_counter()
     print(f"{stop - start:.4f}\n")
 
 
-
-"""
-start1 = time.perf_counter()
-kl = skapa_kortlek()
-for i in comb(kl, 5):
-    x = hash_funktion(i)
-    if x not in hash_lookup:
-        hash_lookup[x] = hand_eval(i)
-stop1 = time.perf_counter()
-print(len(hash_lookup))
-print(f"{stop1 - start1:.4f}\n")
-"""
