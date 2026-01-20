@@ -1,0 +1,208 @@
+
+
+from itertools import combinations as comb
+from collections import Counter
+
+
+
+def skapa_kortlek(kända_kort=None):
+    # gör känd_kort till en lista eftersom mutable keyword är katastrof 
+    if kända_kort is None:
+        kända_kort = [] 
+
+    färg = ["s", "k", "r", "h"]  # spader, klöver, ruter, hjärter (ÄNDRA SEN)
+
+    # skapar kortleken och tar bort reda kända kort
+    lista = [(f, v) for f in färg for v in range(2, 15) if (f, v) not in kända_kort]
+
+    return lista
+
+
+def par_triss_fyrtal_färg(hand:list, antal:int, tvåpar=False) -> bool:
+    hand_dict = Counter(hand)
+
+    if tvåpar:
+        antal_par = 0
+
+        for kort in hand_dict.values():
+            if kort == antal:
+                antal_par += 1
+
+        if antal_par == 2: 
+            return True
+
+    else:
+        for kort in hand_dict.values():
+            if kort == antal:
+                return True
+
+    return False
+
+
+# har stege ger funktionen True
+def stege(hand:list) -> bool:
+    stegen = 1  # sparar antalet kort i direkt följd
+
+    # kort med index "i" är kortet = förra kortet+1
+    for i in range(1, 5):
+        if hand[i] == hand[i - 1] + 1:
+            stegen += 1
+
+    if stegen == 5:
+        return True
+
+    elif hand == [2, 3, 4, 5, 14]:  # specialfallet då ess är lägsta kortet i en stege
+        return True
+
+    return False
+
+
+# bestämmer bästa kortet i kombinationen (tie-breaker)
+def bästa_kort(hand:list, komb:str) -> int:
+    # flera händer kan ha samma kombination och då vinner den som har bästa korten i kombinationen
+    # den här funktionen ger 2-3 av handens bästa kort 
+
+    temp_dict = Counter(hand) # key = valör, value = antalet av valören 
+    no_dup_hand = [] # 
+    poäng = 0
+
+    for kort in hand:
+        if kort not in no_dup_hand:
+            no_dup_hand.append(kort)
+
+    if komb == "stege": # stege ger de 3 bästa korten i handen (används mer än bara för stege)
+        if hand == [2, 3, 4, 5, 14]:  # specialfall då ess = 1
+            hand.remove(14)           # ess är inte det bästa kortet i detta fall
+
+        return (hand[-1] * 10_000) + (hand[-2] * 100) + (hand[-3])
+
+    elif komb == "kåk":
+        for val, ant in temp_dict.items():
+            if ant == 3: 
+                poäng  += (val*10_000) # valör för triss * 10 000
+
+            elif ant == 2: # par
+                poäng  += (val*100) # valör för par * 100
+
+        return poäng # eftersom triss trumfar par ger triss:en mer poäng 
+
+    elif komb == "fyrtal":
+        for val, ant in temp_dict.items():
+            if ant == 4: 
+                poäng  += (val * 10_000) # valör för fyrtal * 10 000
+
+            elif ant == 1:
+                poäng  += (val * 100) # högsta kortet * 100 
+
+        return poäng 
+    
+    elif komb == "triss":
+        for val, ant in temp_dict.items():
+            if ant == 3:
+                poäng  += (val * 10_000)
+                no_dup_hand.remove(val) 
+
+        return poäng  + (no_dup_hand[-1]*100) + no_dup_hand[-2]
+
+
+    elif komb == "tvåpar":
+        tvåpar = []
+        for val, ant in temp_dict.items():
+            if ant == 2:
+                tvåpar.append(val)
+                no_dup_hand.remove(val)
+
+        sort_tvåpar = sorted(tvåpar) # sorterar par-valörerna för att det bästa paret ska ge mest poäng 
+        return (sort_tvåpar[1] * 10_000) + (sort_tvåpar[0]*100) + no_dup_hand[0]
+
+    elif komb == "par":
+        for val, ant in temp_dict.items():
+            if ant == 2:
+                poäng += (val * 10_000)
+                no_dup_hand.remove(val)
+
+        return poäng + (no_dup_hand[-1] * 100) + (no_dup_hand[-2])
+
+    return 0
+
+
+# utvärderar hand med 5 kort
+def hand_eval(hand:tuple):
+    temp_valör = []
+    temp_färg = []
+
+    for kort in hand:
+        färg, valör = kort
+
+        temp_färg.append(färg)
+        temp_valör.append(valör)
+
+    sort_valör = sorted(temp_valör)
+
+    # färgstege = 8
+    if stege(sort_valör) and par_triss_fyrtal_färg(temp_färg, 5):
+        return (8_000_000 + bästa_kort(sort_valör, "stege"))
+
+    # fyrtal = 7
+    elif par_triss_fyrtal_färg(sort_valör, 4):
+        return (7_000_000 + bästa_kort(sort_valör, "fyrtal"))
+
+    # kåk = 6
+    elif par_triss_fyrtal_färg(sort_valör, 2) and par_triss_fyrtal_färg(sort_valör, 3):
+        return (6_000_000 + bästa_kort(sort_valör, "kåk"))
+
+    # färg = 5
+    elif par_triss_fyrtal_färg(temp_färg, 5):
+        return (5_000_000 + bästa_kort(sort_valör, "stege"))
+
+    # stege = 4
+    elif stege(sort_valör):
+        return (4_000_000 + bästa_kort(sort_valör, "stege"))
+
+    # triss = 3
+    elif par_triss_fyrtal_färg(sort_valör, 3):
+        return (3_000_000 + bästa_kort(sort_valör, "triss"))
+
+    # tvåpar = 2
+    elif par_triss_fyrtal_färg(sort_valör, 2, True):
+        return (2_000_000 + bästa_kort(sort_valör, "tvåpar"))
+
+    # par = 1
+    elif par_triss_fyrtal_färg(sort_valör, 2):
+        return (1_000_000 + bästa_kort(sort_valör, "par"))
+
+    # högt kort/inget = 0
+    else:
+        return (0 + bästa_kort(sort_valör, "stege"))
+
+
+def hash_funktion(hand:tuple) -> int:
+    primtal = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41]
+    prim_key = 1
+    flush = True
+    färg = hand[0][0]
+
+    for f, v in hand:
+        prim_key *= primtal[v - 2]
+        if f != färg:
+            flush = False
+
+    if flush:
+        prim_key *= 43
+
+    return prim_key
+
+
+def skapa_pickle_fil() -> dict:
+    kortlek = skapa_kortlek()
+    ny_lookup = {}
+
+    for hand in comb(kortlek, 5):
+        hash_hand = hash_funktion(hand)
+        if hash_hand not in ny_lookup:
+            ny_lookup[hash_hand] = hand_eval(hand)
+
+    return ny_lookup
+
+
+skapa_pickle_fil()
