@@ -295,9 +295,9 @@ def ladda_pickle_fil() -> dict:
         return hash_dict
 
 # hantera inputs 
-def felmeddelande(msg, error_msg):
-    try: return int(input(msg))
-    except ValueError: print(error_msg); return felmeddelande(msg, error_msg)
+def säker_input(msg: str, error_msg:str, typ):
+    try: return typ(input(msg))
+    except (ValueError, NameError,SyntaxError): print(error_msg); return säker_input(msg, error_msg, typ)
 
 # tar input från användaren
 def kort_input(antal_kort, num_kort, lista):
@@ -335,36 +335,45 @@ def kort_input(antal_kort, num_kort, lista):
                 pass
 
         tuple_kort = (nya_färg, nya_valör)  # sparar kort som en tuple
-        lista.append(tuple_kort)
+        lista.append(tuple_kort) # ändrar lista utanför sin scope (egentligen dåligt)
 
 # säger vad spelaren ska göra
-def beslut(win_chans: float, pot:int, bb, sb, syna) -> str:
+def spelare_beslut(win_chans: float, pot:int, call: int) -> tuple[str, int]:
 
-    odds = syna / (pot + syna)
-    ev = (win_chans * pot) - ((1 - win_chans) * syna)
+    odds = call / (pot + call)
+   #ev = (win_chans * pot) - ((1 - win_chans) * call)
 
-    if win_chans >= 0.7:
-        beslutet = f"raise ({bb*2})" # utgå från bid blind
-        syna += bb*2
-        print(f"\nbehövs: {100 * odds:.2f} | jag har: {100 * win_chans:.2f}   ev = {ev:.2f}\n")
+    if call == 0: # först ut och inte har något att syna 
+        if win_chans > 0.6: 
+            insats = int(pot*0.4)
+            beslut_msg = f"raise ({insats})" 
 
-    elif 0.7 > win_chans >= odds:
-        beslutet = "call"
-        print(f"\nbehövs: {100 * odds:.2f} | jag har: {100 * win_chans:.2f}   ev = {ev:.2f}\n")
-    
-    else:
-        beslutet = "fold"
-        syna = 0
-        print(f"\nbehövs: {100 * odds:.2f} | jag har: {100 * win_chans:.2f}   ev = {ev:.2f}\n")
+        else:
+            beslut_msg = "check"
+            insats = 0
 
-    return beslutet, syna
+    else: 
+        if win_chans >= 0.6:
+            insats = int(pot*0.4) + call
+            beslut_msg = f"raise ({insats})" 
+            if insats < 4: # om höjningen är mindre än 2*big blind
+                insats = 4 # avrunda till 2*bid blind
+
+        elif win_chans >= odds:
+            insats = call
+            beslut_msg = "call"
+        
+        else:
+            insats = 0
+            beslut_msg = "fold"
+
+    stats = f"\npot odds: {100 * odds:.2f}%  |  equity: {100 * win_chans:.2f}%" 
+    return beslut_msg, insats, stats
 
 # själva spelrundan
 def spelrunda() -> None:
-    antal_spelare = felmeddelande(f"antal spelare (exkl. du): ", f"Ange ett giltigt antal\n")
-    marker = felmeddelande(f"\nantal marker vid start: ", f"Ange ett giltigt antal\n")
-    big_blind = felmeddelande(f"\nbid blind: ", f"Ange ett giltigt antal\n")
-    small_blind = felmeddelande(f"\nsmall blind: ", f"Ange ett giltigt antal\n")
+   
+    marker = 50
 
     while marker > 0:
         hålkort = [] 
@@ -374,40 +383,65 @@ def spelrunda() -> None:
         # key: vilken runda det är  value: antal kort man ska dra, numret på första kortet, listan som kortet ska sparas till
         info = {"Pre-flop": (2, 1, hålkort), "Flop": (3, 3, community_cards), "Turn": (1, 6, community_cards),"River": (1, 7, community_cards)}
 
+        #marker = säker_input(f"\n------------------------------------------\n\nmarker: ", f"Ange ett giltigt antal", int)
+
         for runda, kort in info.items():
             kort_antal, kort_num, kort_lista = kort
 
-            if marker <= 0:
-                print("\n------------------------------------------\n\nvänta tils omgången är över och se vem som vinner\n\n------------------------------------------\n")
+            if marker == 0:
+                print("\n------------------------------------------\n\nslut på marker\n------------------------------------------\n\n")
                 break
-
-            print(f"\n------------------------------------------\n{runda} - Du har {marker} marker\n\n")
-            kort_input(kort_antal, kort_num, kort_lista)
-
-            nya_bets = eval(input(f"\npot: "))  # SyntaxError om "+" på slutet
-            pot += nya_bets
             
-            syna = felmeddelande(f"\nsyna: ", f"Ange ett giltigt antal")
+            print(f"\n------------------------------------------\n\n{runda} - Du har {marker} marker\n\n")
 
-            spelare_folds = felmeddelande(f"\nspelare som foldat: ", f"Ange ett giltigt antal")
-            antal_spelare -= spelare_folds
+            if runda == "Pre-flop":
+                blind = säker_input(f"blind: ", f"Ange ett giltigt antal\n", int)
+                marker -= blind
+                print(" ")
+
+            kort_input(kort_antal, kort_num, kort_lista) 
+
+            pot_tillägg = säker_input(f"\npot: {pot} + ", f"Ange ett giltigt antal", eval)
+            pot += pot_tillägg
+            
+            call = säker_input(f"\nbehöver syna: ", f"Ange ett giltigt antal", int)
+
+            antal_spelare = säker_input(f"\nantal motståndare: ", f"Ange ett giltigt antal\n", int)
 
             res_sim = simulering(community_cards, hålkort, 20_000, spelare=antal_spelare)
-            bet = beslut(res_sim, pot, big_blind, small_blind, syna)
-            print(f"\n{bet[0]}\n")
+            beslut, kostnad, stats_msg = spelare_beslut(res_sim, pot, call)
 
-            if bet[0] == "fold":
-                print("\n------------------------------------------\n\nvänta till nästa omgång")
-                break
+            if kostnad >= marker:
+                print("\n------------------------------------------\n\nALL IN\n")
+                vinnare = säker_input("vann du: ", "svara på frågan med ja eller nej", str).strip().lower()
+                if vinnare == "ja":
+                    break
+                else:
+                    marker = 0
+                    break
 
             else:
-                marker -= bet[1]
+                #print(f"\n------------------------------------------\n\n{beslut}\n{stats_msg}")
+                print(f"\n------------------------------------------\n\n{beslut}\n\n")
 
-    vinnare = input("vann du? ").lower().strip()
-    if vinnare == "ja":
-        marker += pot
+            if beslut == "fold":
+                #print("------------------------------------------\n\nvänta till nästa omgång")
+                break
+
+            elif beslut == "call" or beslut[:5] == "raise" or beslut == "check":
+                marker -= kostnad
+
+                pot_tillägg = säker_input(f"\npot: {pot + kostnad} + ", f"Ange ett giltigt antal", eval)
+                pot += pot_tillägg + kostnad
+
+                if runda == "River":
+                    vinnare = säker_input("\nvann du: ", "svara på frågan med ja eller nej", str).strip().lower()
+                    if vinnare == "ja":
+                        marker += pot
 
         hash_eval_7.cache_clear()
+    
+    print("\n------------------------------------------\n\nslut på marker\n\n------------------------------------------\n")
 
 
 # ------- STEG 5 -------
@@ -419,7 +453,7 @@ def main() -> None:
     else:
         print(f"Allting ser bra ut\n")
 
-    print("något meddelande om hur programmet ska användas\n\n------------------------------------------\n")
+    print("något meddelande om hur programmet ska användas")
 
     spelrunda()
 
@@ -431,9 +465,26 @@ if __name__ == "__main__":
 
 
 
-# kommentar till imorgon 
-# gör en ny funktion som bara är till för att ta inputs 
-# så blir spelrunda och beslut enklare att förstå 
+
+"""
+if runda == "Pre-flop":
+    blind = säker_input(f"blind: ", f"Ange ett giltigt antal\n", str)
+    print(" ")
+    
+    # hårdkodad båda bilds inför tävlingen
+    if blind == "big" or blind == "stora":
+        blind = 2 
+    elif blind == "small" or blind == "lilla":
+        blind = 1
+    else:
+        blind = 0
+
+if beslut != "fold":
+    vinnare = säker_input(f"\n\n------------------------------------------\nvann du? \n\n------------------------------------------\n", f" ", str)
+
+    if vinnare == "ja":
+        marker += pot
+"""
 
 
 
@@ -442,15 +493,6 @@ a = []
 kort_input(4,1,a)
 
 
-while True:
-    try:
-        x = int(input(": "))
-        break
-    except (NameError, ValueError):
-        pass
-"""
-
-"""
 import time  # start = time.perf_counter() # stop = time.perf_counter()
 
 hk = [(1, 14), (2, 14)]
