@@ -338,7 +338,7 @@ def kort_input(antal_kort, num_kort, lista):
         lista.append(tuple_kort) # ändrar lista utanför sin scope (egentligen dåligt)
 
 # säger vad spelaren ska göra
-def spelare_beslut(win_chans: float, pot:int, call: int) -> tuple[str, int]:
+def spelare_beslut(win_chans: float, pot:int, call: int) -> tuple[str, int, str]:
 
     odds = call / (pot + call)
    #ev = (win_chans * pot) - ((1 - win_chans) * call)
@@ -373,7 +373,7 @@ def spelare_beslut(win_chans: float, pot:int, call: int) -> tuple[str, int]:
 # själva spelrundan
 def spelrunda() -> None:
    
-    marker = 50
+    marker = 50 # startmarker
 
     while marker > 0:
         hålkort = [] 
@@ -383,13 +383,11 @@ def spelrunda() -> None:
         # key: vilken runda det är  value: antal kort man ska dra, numret på första kortet, listan som kortet ska sparas till
         info = {"Pre-flop": (2, 1, hålkort), "Flop": (3, 3, community_cards), "Turn": (1, 6, community_cards),"River": (1, 7, community_cards)}
 
-        #marker = säker_input(f"\n------------------------------------------\n\nmarker: ", f"Ange ett giltigt antal", int)
-
         for runda, kort in info.items():
             kort_antal, kort_num, kort_lista = kort
 
-            if marker == 0:
-                print("\n------------------------------------------\n\nslut på marker\n------------------------------------------\n\n")
+            if marker == 0: 
+                #print("\n------------------------------------------\n\nslut på marker\n------------------------------------------\n\n")
                 break
             
             print(f"\n------------------------------------------\n\n{runda} - Du har {marker} marker\n\n")
@@ -401,38 +399,46 @@ def spelrunda() -> None:
 
             kort_input(kort_antal, kort_num, kort_lista) 
 
-            pot_tillägg = säker_input(f"\npot: {pot} + ", f"Ange ett giltigt antal", eval)
-            pot += pot_tillägg
-            
-            call = säker_input(f"\nbehöver syna: ", f"Ange ett giltigt antal", int)
+            while True:
+                pot_tillägg = säker_input(f"\npot: {pot} + ", f"Ange ett giltigt antal", eval)
+                pot += pot_tillägg
+                
+                call = säker_input(f"\nbehöver syna: ", f"Ange ett giltigt antal", int)
 
-            antal_spelare = säker_input(f"\nantal motståndare: ", f"Ange ett giltigt antal\n", int)
+                antal_spelare = säker_input(f"\nantal motståndare: ", f"Ange ett giltigt antal\n", int)
 
-            res_sim = simulering(community_cards, hålkort, 20_000, spelare=antal_spelare)
-            beslut, kostnad, stats_msg = spelare_beslut(res_sim, pot, call)
+                res_sim = simulering(community_cards, hålkort, 15_000, spelare=antal_spelare)
+                beslut, kostnad, stats_msg = spelare_beslut(res_sim, pot, call)
 
-            if kostnad >= marker:
-                print("\n------------------------------------------\n\nALL IN\n")
-                vinnare = säker_input("vann du: ", "svara på frågan med ja eller nej", str).strip().lower()
-                if vinnare == "ja":
-                    break
+
+                if kostnad >= marker:
+                    print("\n------------------------------------------\n\nALL IN\n")
+                    vinnare = säker_input("vann du: ", "svara på frågan med ja eller nej", str).strip().lower()
+                    if vinnare == "ja":
+                        break
+                    else:
+                        marker = 0
+                        break
+
                 else:
-                    marker = 0
+                    #print(f"\n------------------------------------------\n\n{beslut}\n{stats_msg}")
+                    print(f"\n\n{beslut}\n\n")
+
+                if beslut == "fold":
+                    #print("------------------------------------------\n\nvänta till nästa omgång")
                     break
 
-            else:
-                #print(f"\n------------------------------------------\n\n{beslut}\n{stats_msg}")
-                print(f"\n------------------------------------------\n\n{beslut}\n\n")
+                elif beslut == "call" or beslut[:5] == "raise" or beslut == "check":
+                    marker -= kostnad
 
-            if beslut == "fold":
-                #print("------------------------------------------\n\nvänta till nästa omgång")
-                break
+                    pot_tillägg = säker_input(f"pot: {pot + kostnad} + ", f"Ange ett giltigt antal", eval)
+                    pot += pot_tillägg + kostnad
 
-            elif beslut == "call" or beslut[:5] == "raise" or beslut == "check":
-                marker -= kostnad
 
-                pot_tillägg = säker_input(f"\npot: {pot + kostnad} + ", f"Ange ett giltigt antal", eval)
-                pot += pot_tillägg + kostnad
+                x = säker_input("\nhöjde någon (ja/nej):","Svara med ja eller nej", str).strip().lower()
+                if x != "ja":
+                    break
+
 
                 if runda == "River":
                     vinnare = säker_input("\nvann du: ", "svara på frågan med ja eller nej", str).strip().lower()
@@ -467,6 +473,8 @@ if __name__ == "__main__":
 
 
 """
+marker = säker_input(f"\n------------------------------------------\n\nmarker: ", f"Ange ett giltigt antal", int)
+
 if runda == "Pre-flop":
     blind = säker_input(f"blind: ", f"Ange ett giltigt antal\n", str)
     print(" ")
