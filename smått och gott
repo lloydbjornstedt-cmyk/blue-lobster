@@ -279,7 +279,7 @@ def simulering(cc: list, hk: list, iter: int, spelare=1, ) -> float:
 # laddar pickle-filen och fyller hash_lookup
 def ladda_pickle_fil() -> dict:
     # jag ska vara ärlig och säga att jag inte rikitgt vet vad som händer här...
-    cache_fil = 'poker_hash_cache.pkl'  # namnet på filen som funktionen letar efter
+    cache_fil = 'poker_hashmap.pkl'  # namnet på filen som funktionen letar efter
 
     if os.path.exists(cache_fil):  # om filen finns
         print("Laddar pickle-fil")
