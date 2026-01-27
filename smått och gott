@@ -19,6 +19,7 @@ STEG 5  - köra programmet i en main funktion
 
 # ------- STEG 1 -------
 
+
 from itertools import combinations as comb  # skapa kombinationer av kort
 from collections import Counter             # räkna förekomsten av kort i en hand
 from functools import lru_cache as cache    # skapar en cache
@@ -28,6 +29,7 @@ import os                                   # laddar in hashmappen
 
 
 # ------- STEG 2 -------
+
 
 # har par, tvåpar, triss, fyrtal eller färg ger funktionen True
 def par_triss_fyrtal_färg(hand: list, antal: int, tvåpar=False) -> bool:
@@ -129,7 +131,7 @@ def bästa_kort(hand: list, komb: str) -> int:
     return 0
 
 # utvärderar hand med 5 kort
-def hand_eval(hand: tuple):
+def hand_eval(hand: tuple) -> int:
     # tillfälliga
     temp_valör = []
     temp_färg = []
@@ -142,7 +144,6 @@ def hand_eval(hand: tuple):
 
     # sorterar handen en gång istället för att återkalla sorted() flera gånger
     sort_valör = sorted(temp_valör)
-
 
     # färgstege = 8_000_000
     if stege(sort_valör) and par_triss_fyrtal_färg(temp_färg, 5):
@@ -195,9 +196,10 @@ def skapa_hashmap() -> dict:
 
 # ------- STEG 3 -------
 
+
 # skapar en kortlek
-def skapa_kortlek(kända_kort=None):
-    # gör känd_kort till en lista eftersom mutable keyword är dåligt
+def skapa_kortlek(kända_kort=None) -> list:
+    # om känd_kort inte redan är en lista (mutable keyword är dåligt därför har kända_kort typen None)
     if kända_kort is None:
         kända_kort = []
 
@@ -214,27 +216,27 @@ def hash_funktion(hand: tuple) -> int:
     # multiplicera alla primtal och så blir det ett unikt tal baserat på valörerna
 
     primtal_lista = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41]  # valören blir ett index i listan
-    prim_key = 1  # ska bli hashnyckeln
+    primtal_key = 1  # ska bli hashnyckeln
     möjlig_flush = True  # utgår från att alla kort har samma färg
-    jämför_färg = hand[0][0]  # färgen på första kortet
+    jämför_färg = hand[0][0]  # färgen på första kortet (hade kunnat vilket kort som helst)
 
     for färg, valör in hand:
-        prim_key *= primtal_lista[valör - 2]  # valörena börjar räkna från 2 men listor börjar på 0
+        primtal_key *= primtal_lista[valör - 2]  # valörena börjar räkna från 2 men listor börjar på 0
         if färg != jämför_färg:
             möjlig_flush = False  # om färgen skiljer sig från första kortet kan det inte vara en flush
 
     if möjlig_flush:  # ända gången färg spelar roll är om alla fem kort är av samma färg
-        prim_key *= 43  # multiplicerar med unikt primtal om alla har samma färg
+        primtal_key *= 43  # multiplicerar med unikt primtal om alla har samma färg
 
-    return prim_key
+    return primtal_key
 
 # letar genom hash-nycklar och ger hands värde
 def hash_get(hand: tuple) -> int:
     key = hash_funktion(hand)
-    return hash_lookup.get(key, 0)  # om en key inte finns i hashmappen ger get() istället 0 för KeyError
+    return hash_lookup.get(key, 0)  # om en key inte finns i hashmappen ger get() 0 istället för KeyError
 
 @cache(maxsize=40_000)  # funktionen kollar på 7 kort samtidigt för att utnytyja en cash
-def hash_eval_7(hand_7: tuple) -> int:
+def hash_eval_7(hand_7: tuple) -> int: 
     return max(hash_get(hand_5) for hand_5 in comb(hand_7, 5))
 
 # bestämmer sannolikhet för vinst
@@ -249,8 +251,8 @@ def simulering(cc: list, hk: list, iter: int, spelare=1, ) -> float:
         bord = cc + urval_kort[:kort_kvar]  # kända community cards + några slumpade kort
         bäst_motsåndare = 0  # börja iterationen med att nollställa motståndaren
 
-        min_hand = hash_eval_7(tuple(sorted(hk + bord)))  # min bästa hand utifrån korten som ges
-
+        # användarens bästa hand utifrån 7 kort som ges 
+        min_hand = hash_eval_7(tuple(sorted(hk + bord)))  # handen blir en tuple eftrsom listor kan inte sparas i cache
         for i in range(spelare):  # simulerar utfallen för alla spelare
             start = kort_kvar + (i * 2)  # ger vilka två kort ut urvallet som ska användas
             motståndare_hk = urval_kort[start: start + 2]  # ska motsvara motståndarens hållkort
@@ -268,13 +270,11 @@ def simulering(cc: list, hk: list, iter: int, spelare=1, ) -> float:
         elif bäst_motsåndare == min_hand:
             tie += 1
 
-    equity = (win + (0.5 * tie)) / iter  # formelln för att bestämma pot equity
-
-    #print(f"\nwin: {win:<7} tie: {tie:<7} lose: {(iter) - (win + tie):<7} %win: {100 * equity:.2f}\n")
-    return equity
+    return (win + (0.5 * tie)) / iter  # formelln för att bestämma pot equity
 
 
 # ------- STEG 4 -------
+
 
 # laddar pickle-filen och fyller hash_lookup
 def ladda_pickle_fil() -> dict:
@@ -292,15 +292,19 @@ def ladda_pickle_fil() -> dict:
         with open(cache_fil, 'wb') as f:
             pickle.dump(hash_dict, f)
         print("Hash map genererad och sparad!")
-        return hash_dict
+        return hash_dict # retunerar en fylld dictionary
 
-# hantera inputs 
-def säker_input(msg: str, error_msg:str, typ):
-    try: return typ(input(msg))
-    except (ValueError, NameError,SyntaxError): print(error_msg); return säker_input(msg, error_msg, typ)
+# hantera inputs med try-exept
+def säker_input(msg: str, error_msg:str, typ) -> str:
+    try: 
+        return typ(input(msg))
+    
+    except (ValueError, NameError, SyntaxError): 
+        print(error_msg)
+        return säker_input(msg, error_msg, typ)
 
 # tar input från användaren
-def kort_input(antal_kort, num_kort, lista):
+def kort_input(antal_kort: int, num_kort: int, lista: list) -> None:
     # gör om klädda kort och färgerna till siffror
     klädda_kort_num = {"knekt": 11, "j": 11, "dam": 12, "q": 12, "kung": 13, "k": 13, "ess": 14, "a": 14}
     färg_num = {"h": 1, "s": 2, "k": 3, "r": 4}
@@ -325,55 +329,57 @@ def kort_input(antal_kort, num_kort, lista):
                     nya_färg = färg_num[färg[0]]
 
                 else:
-                    print("Ange en giltig färg (h, s, k, r)\n")
+                    print("Ange en giltig färg (hjärter, spader, klöver, ruter)\n")
                     continue
 
                 break
 
             except (ValueError, KeyError):  # ValueError om inte split, KeyError om input inte i en dict
                 print("Fel format. Skriv t.ex. 'h 10' eller 'spader kung'.\n")
-                pass
 
         tuple_kort = (nya_färg, nya_valör)  # sparar kort som en tuple
-        lista.append(tuple_kort) # ändrar lista utanför sin scope (egentligen dåligt)
+        lista.append(tuple_kort) # NOTERA ändrar lista utanför sin scope 
 
 # säger vad spelaren ska göra
-def spelare_beslut(win_chans: float, pot:int, call: int) -> tuple[str, int, str]:
+def spelare_beslut(win_chans: float, marker: int, pot:int, call: int) -> tuple:
 
     odds = call / (pot + call)
-   #ev = (win_chans * pot) - ((1 - win_chans) * call)
 
     if call == 0: # först ut och inte har något att syna 
         if win_chans > 0.6: 
-            insats = int(pot*0.4)
-            beslut_msg = f"raise ({insats})" 
+            insats = int(pot*0.3)
+            beslut_msg = f"RAISE ({insats})" 
 
         else:
-            beslut_msg = "check"
+            beslut_msg = "CHECK"
             insats = 0
 
     else: 
         if win_chans >= 0.6:
-            insats = int(pot*0.4) + call
-            beslut_msg = f"raise ({insats})" 
+            insats = int(pot*0.3) + call
+            beslut_msg = f"RAISE ({insats})" 
             if insats < 4: # om höjningen är mindre än 2*big blind
                 insats = 4 # avrunda till 2*bid blind
 
         elif win_chans >= odds:
             insats = call
-            beslut_msg = "call"
+            beslut_msg = "CALL"
         
         else:
             insats = 0
-            beslut_msg = "fold"
+            beslut_msg = "FOLD"
+    
+    if insats >= marker:
+        beslut_msg = "ALL IN"
 
-    stats = f"\npot odds: {100 * odds:.2f}%  |  equity: {100 * win_chans:.2f}%" 
+    stats = f"pot odds: {100 * odds:.2f}%  |  equity: {100 * win_chans:.2f}%" 
     return beslut_msg, insats, stats
 
 # själva spelrundan
 def spelrunda() -> None:
    
     marker = 50 # startmarker
+   #marker = säker_input(f"\n------------------------------------------\n\nmarker: ", f"Ange ett giltigt antal", int)
 
     while marker > 0:
         hålkort = [] 
@@ -381,69 +387,51 @@ def spelrunda() -> None:
         pot = 0
 
         # key: vilken runda det är  value: antal kort man ska dra, numret på första kortet, listan som kortet ska sparas till
-        info = {"Pre-flop": (2, 1, hålkort), "Flop": (3, 3, community_cards), "Turn": (1, 6, community_cards),"River": (1, 7, community_cards)}
+        info = {"PRE-FLOP": (2, 1, hålkort), "FLOP": (3, 3, community_cards), "TURN": (1, 6, community_cards),"RIVER": (1, 7, community_cards)}
 
         for runda, kort in info.items():
             kort_antal, kort_num, kort_lista = kort
 
-            if marker == 0: 
-                #print("\n------------------------------------------\n\nslut på marker\n------------------------------------------\n\n")
-                break
-            
-            print(f"\n------------------------------------------\n\n{runda} - Du har {marker} marker\n\n")
+            print(f"\n------------------------------------------\n\n{runda} - {marker} marker\n\n")
 
-            if runda == "Pre-flop":
-                blind = säker_input(f"blind: ", f"Ange ett giltigt antal\n", int)
-                marker -= blind
+            if runda == "PRE-FLOP":
+                marker -= säker_input(f"blind: ", f"Ange ett giltigt antal\n", int)
                 print(" ")
 
             kort_input(kort_antal, kort_num, kort_lista) 
 
             while True:
-                pot_tillägg = säker_input(f"\npot: {pot} + ", f"Ange ett giltigt antal", eval)
-                pot += pot_tillägg
+                print(f"\n------------------------------------------")
+                pot += säker_input(f"\npot: {pot} + ", f"Ange ett giltigt antal", eval)
                 
                 call = säker_input(f"\nbehöver syna: ", f"Ange ett giltigt antal", int)
 
                 antal_spelare = säker_input(f"\nantal motståndare: ", f"Ange ett giltigt antal\n", int)
 
-                res_sim = simulering(community_cards, hålkort, 15_000, spelare=antal_spelare)
-                beslut, kostnad, stats_msg = spelare_beslut(res_sim, pot, call)
+                res_sim = simulering(community_cards, hålkort, 15_000, antal_spelare)
+                beslut, kostnad, stats_msg = spelare_beslut(res_sim, marker, pot, call)
 
+                print(f"\n\n{beslut} - {stats_msg}\n")
 
-                if kostnad >= marker:
-                    print("\n------------------------------------------\n\nALL IN\n")
-                    vinnare = säker_input("vann du: ", "svara på frågan med ja eller nej", str).strip().lower()
-                    if vinnare == "ja":
-                        break
-                    else:
-                        marker = 0
-                        break
-
-                else:
-                    #print(f"\n------------------------------------------\n\n{beslut}\n{stats_msg}")
-                    print(f"\n\n{beslut}\n\n")
-
-                if beslut == "fold":
-                    #print("------------------------------------------\n\nvänta till nästa omgång")
+                if beslut == "ALL IN" or beslut == "FOLD":
                     break
 
-                elif beslut == "call" or beslut[:5] == "raise" or beslut == "check":
+                elif beslut == "CALL" or beslut[:5] == "RAISE" or beslut == "CHECK":
                     marker -= kostnad
 
-                    pot_tillägg = säker_input(f"pot: {pot + kostnad} + ", f"Ange ett giltigt antal", eval)
-                    pot += pot_tillägg + kostnad
+                    pot += säker_input(f"\npot: {pot} + ", f"Ange ett giltigt antal", eval)
 
+                    raise_check = säker_input("\nhöjde någon (ja/nej):","Svara med ja eller nej", str).strip().lower()
+                    if raise_check != "ja":
+                        break
 
-                x = säker_input("\nhöjde någon (ja/nej):","Svara med ja eller nej", str).strip().lower()
-                if x != "ja":
-                    break
+            if beslut == "FOLD": 
+                break
 
-
-                if runda == "River":
-                    vinnare = säker_input("\nvann du: ", "svara på frågan med ja eller nej", str).strip().lower()
-                    if vinnare == "ja":
-                        marker += pot
+            if runda == "RIVER" or beslut == "ALL IN":
+                vinnare = säker_input("\nvann du: ", "svara på frågan med (ja/nej)", str).strip().lower()
+                if vinnare == "ja":
+                    marker += pot
 
         hash_eval_7.cache_clear()
     
@@ -452,15 +440,17 @@ def spelrunda() -> None:
 
 # ------- STEG 5 -------
 
+
 # allting som ingår när programmet ska köras
 def main() -> None:
     if not hash_lookup:
-        print(f"VARNING: hash_lookup är tom\n------------------------------------------\n")
+        print("VARNING: hash_lookup är tom\n")
     else:
-        print(f"Allting ser bra ut\n")
+        print("Allting ser bra ut\n")
 
     print("något meddelande om hur programmet ska användas")
 
+    hash_eval_7.cache_clear()
     spelrunda()
 
 # tydligen är detta vad man ska göra i python
@@ -474,18 +464,9 @@ if __name__ == "__main__":
 
 """
 marker = säker_input(f"\n------------------------------------------\n\nmarker: ", f"Ange ett giltigt antal", int)
+pot_tillägg = säker_input(f"\npot: {pot} + ", f"Ange ett giltigt antal", eval)
 
-if runda == "Pre-flop":
-    blind = säker_input(f"blind: ", f"Ange ett giltigt antal\n", str)
-    print(" ")
-    
-    # hårdkodad båda bilds inför tävlingen
-    if blind == "big" or blind == "stora":
-        blind = 2 
-    elif blind == "small" or blind == "lilla":
-        blind = 1
-    else:
-        blind = 0
+
 
 if beslut != "fold":
     vinnare = säker_input(f"\n\n------------------------------------------\nvann du? \n\n------------------------------------------\n", f" ", str)
