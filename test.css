@@ -1,0 +1,18 @@
+
+h1{
+    text-align: center;
+}
+
+p{
+    text-align: center;
+}
+
+button{
+    margin: auto;
+    display: block;
+}
+
+img{
+    margin: auto;
+    display: block;
+}
