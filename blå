@@ -24,7 +24,7 @@ for path in run_path.glob("*.run"):
             rel_dict[i] = 1
 
     for i in data["master_deck"]:
-        if i in deck_dict:
+        if i in deck_dict and i != "AscendersBane":
             deck_dict[i] += 1
         else:
             deck_dict[i] = 1
@@ -44,9 +44,9 @@ print("\n")
 sort_deck_dict = {k: v for k, v in sorted(deck_dict.items(), key=lambda item: item[1])}
 deck_list = [i for i in sort_deck_dict.items()]
 
-for i in range(4,10):
+for i in range(4,9):
     a, b = deck_list[-1-i]
-    print(f"{i+1} - {a} - {b}")
+    print(f"{i-3} - {a} - {b}")
 
 print("\n")
 
@@ -54,7 +54,21 @@ for i,u in asc_dict.items():
     print(f"{i} - {u}")
 
     
-        
+def get_file(adrs):
+    run_path = Path(adrs)
+
+    for path in run_path.glob("*.run"):
+        with path.open("r") as f:
+            data = json.load(f)
+    
+    return data
+
+def get_data(file):
+    try:
+        pass
+
+    except:
+        pass
 
 
     
