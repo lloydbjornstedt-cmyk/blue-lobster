@@ -1,0 +1,167 @@
+
+import json
+from pathlib import Path
+
+rel_dict = {}
+asc_dict = {}
+deck_dict = {}
+
+#run_path = Path(r"D:\Steam\steamapps\common\SlayTheSpire\runs\DEFECT")
+run_path = Path('/Users/lloyd.bjornstedt/Library/Application Support/Steam/steamapps/common/SlayTheSpire/SlayTheSpire.app/Contents/Resources/runs/DEFECT')
+
+for path in run_path.glob("*.run"):
+    with path.open("r") as f:
+        data = json.load(f)
+
+    if data["ascension_level"] in asc_dict:
+        asc_dict[data["ascension_level"]] += 1
+    else:
+        asc_dict[data["ascension_level"]] = 1
+
+    for i in data["relics"]:
+        if i in rel_dict:
+            rel_dict[i] += 1
+        else:
+            rel_dict[i] = 1
+
+    for i in data["master_deck"]:
+        if i in deck_dict and i != "AscendersBane":
+            deck_dict[i] += 1
+        else:
+            deck_dict[i] = 1
+
+    
+
+"""
+sort_rel_dict = {k: v for k, v in sorted(rel_dict.items(), key=lambda item: item[1])}
+rel_list = [i for i in sort_rel_dict.items()]
+
+for i in range(0,5):
+    a, b = rel_list[-1-i]
+    print(f"{i+1} - {a} - {b}")
+
+print("\n")
+
+sort_deck_dict = {k: v for k, v in sorted(deck_dict.items(), key=lambda item: item[1])}
+deck_list = [i for i in sort_deck_dict.items()]
+
+for i in range(4,9):
+    a, b = deck_list[-1-i]
+    print(f"{i-3} - {a} - {b}")
+
+print("\n")
+
+for i,u in sorted(asc_dict.items()):
+    print(f"{i} - {u}")
+"""
+#----------------------------------------  
+    
+def get_data(address):
+    run_path = Path(address)
+
+    for path in run_path.glob("*.run"):
+        with path.open("r") as f:
+            data = json.load(f)
+    
+    return data
+
+
+def get_stat(dic,stat):
+    if stat in dic:
+        dic[stat] += 1
+    else:
+        dic[stat] = 1
+    
+    return dic
+  
+        
+def set_stat(file, stat): 
+    stat_dic = {}
+    
+    try:
+        for i in file[stat]:
+            stat_dic[i] = get_stat(stat_dic,stat)
+
+    except TypeError: 
+        stat_dic += get_stat(stat_dic,stat)
+    
+    return stat_dic
+ 
+fil = get_data('/Users/lloyd.bjornstedt/Library/Application Support/Steam/steamapps/common/SlayTheSpire/SlayTheSpire.app/Contents/Resources/runs/DEFECT')    
+x = set_stat(fil,"relics")
+print(x)
+
+#----------------------------------------  
+    
+
+# KARAKTÄR: 21
+# TID: 2 6 
+# SCORE: 4
+# FLOOR: 1 
+# ASCENSION LEVEL: 7 49
+# SEED?: 17
+
+# DECK: 12
+# KORT: 
+# KORT (PUR): 3
+# RELICS: 14
+# SHOP: 22+24 
+# GULD: 0 
+# CAMPFIRE: 8 23
+
+# DAMAGE: 16
+# ENCOUNTERS: 20
+# DÖDAD AV: 48 
+
+"""
+x    (0, 'gold_per_floor')
+x    (1, 'floor_reached')
+x    (2, 'playtime')
+x    (3, 'items_purged')
+x    (4, 'score')
+    (5, 'play_id')
+x    (6, 'local_time')
+x    (7, 'is_ascension_mode')
+x    (8, 'campfire_choices')
+    (9, 'neow_cost')
+    (10, 'seed_source_timestamp')
+    (11, 'circlet_count')
+x    (12, 'master_deck')
+    (13, 'special_seed')
+x    (14, 'relics')
+    (15, 'potions_floor_usage')
+x    (16, 'damage_taken')
+x    (17, 'seed_played')
+    (18, 'potions_obtained')
+    (19, 'is_trial')
+x    (20, 'path_per_floor')
+x    (21, 'character_chosen')
+x    (22, 'items_purchased')
+x    (23, 'campfire_rested')
+x    (24, 'item_purchase_floors')
+    (25, 'current_hp_per_floor')
+    (26, 'gold')
+    (27, 'neow_bonus')
+    (28, 'is_prod')
+    (29, 'is_daily')
+    (30, 'chose_seed')
+    (31, 'campfire_upgraded')
+    (32, 'win_rate')
+    (33, 'timestamp')
+    (34, 'path_taken')
+    (35, 'build_version')
+    (36, 'purchased_purges')
+    (37, 'victory')
+    (38, 'max_hp_per_floor')
+    (39, 'card_choices')
+    (40, 'player_experience')
+    (41, 'relics_obtained')
+    (42, 'event_choices')
+    (43, 'is_beta')
+    (44, 'boss_relics')
+    (45, 'items_purged_floors')
+    (46, 'is_endless')
+    (47, 'potions_floor_spawned')
+x    (48, 'killed_by')
+x    (49, 'ascension_level')
+"""
