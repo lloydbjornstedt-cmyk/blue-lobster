@@ -7,6 +7,7 @@ asc_dict = {}
 deck_dict = {}
 
 run_path = Path(r"D:\Steam\steamapps\common\SlayTheSpire\runs\DEFECT")
+#run_path = Path('/Users/lloyd.bjornstedt/Library/Application Support/Steam/steamapps/common/SlayTheSpire/SlayTheSpire.app/Contents/Resources/runs/DEFECT')
 
 for path in run_path.glob("*.run"):
     with path.open("r") as f:
@@ -29,48 +30,55 @@ for path in run_path.glob("*.run"):
         else:
             deck_dict[i] = 1
 
+#---------------------------------------- 
+
+
+def counter(dic,item):
+    try:
+        dic[item] += 1
+
+    except KeyError:
+        dic[item] = 1
     
+    return dic
+          
+def set_stat(dic,item): 
+    try:
+        for i in item:
+            counter(dic,i)
 
+    except TypeError:
+        counter(dic,item)
+ 
 
-sort_rel_dict = {k: v for k, v in sorted(rel_dict.items(), key=lambda item: item[1])}
-rel_list = [i for i in sort_rel_dict.items()]
-
-for i in range(0,5):
-    a, b = rel_list[-1-i]
-    print(f"{i+1} - {a} - {b}")
-
-print("\n")
-
-sort_deck_dict = {k: v for k, v in sorted(deck_dict.items(), key=lambda item: item[1])}
-deck_list = [i for i in sort_deck_dict.items()]
-
-for i in range(4,9):
-    a, b = deck_list[-1-i]
-    print(f"{i-3} - {a} - {b}")
-
-print("\n")
-
-for i,u in asc_dict.items():
-    print(f"{i} - {u}")
-
-    
-def get_file(adrs):
-    run_path = Path(adrs)
+def get_data(address,stat):
+    run_path = Path(address)
+    temp_dic = {}
 
     for path in run_path.glob("*.run"):
         with path.open("r") as f:
             data = json.load(f)
-    
-    return data
 
-def get_data(file):
-    try:
-        pass
+        get = data[stat]
 
-    except:
-        pass
+        set_stat(temp_dic,get)
+
+    return temp_dic
+
+def main():
+    final_dic = get_data(r"D:\Steam\steamapps\common\SlayTheSpire\runs\DEFECT","ascension_level")
+    for key,item in final_dic.items():     
+        print(f"{key} - {item}")
 
 
+
+if __name__ == "__main__":
+    #"ascension_level"
+    #"relics"
+    main()
+
+
+#----------------------------------------  
     
 
 # KARAKTÄR: 21
