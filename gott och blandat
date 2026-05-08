@@ -6,8 +6,8 @@ rel_dict = {}
 asc_dict = {}
 deck_dict = {}
 
-#run_path = Path(r"D:\Steam\steamapps\common\SlayTheSpire\runs\DEFECT")
-run_path = Path('/Users/lloyd.bjornstedt/Library/Application Support/Steam/steamapps/common/SlayTheSpire/SlayTheSpire.app/Contents/Resources/runs/DEFECT')
+run_path = Path(r"D:\Steam\steamapps\common\SlayTheSpire\runs\DEFECT")
+#run_path = Path('/Users/lloyd.bjornstedt/Library/Application Support/Steam/steamapps/common/SlayTheSpire/SlayTheSpire.app/Contents/Resources/runs/DEFECT')
 
 for path in run_path.glob("*.run"):
     with path.open("r") as f:
@@ -30,66 +30,88 @@ for path in run_path.glob("*.run"):
         else:
             deck_dict[i] = 1
 
+#---------------------------------------- 
+
+
+def counter(dic,item):
+    try:
+        dic[item] += 1
+
+    except KeyError:
+        dic[item] = 1
     
+    return dic
+          
+def set_stat(dic,item): 
+    try:
+        for i in item:
+            counter(dic,i)
 
-"""
-sort_rel_dict = {k: v for k, v in sorted(rel_dict.items(), key=lambda item: item[1])}
-rel_list = [i for i in sort_rel_dict.items()]
+    except TypeError:
+        counter(dic,item)
+ 
 
-for i in range(0,5):
-    a, b = rel_list[-1-i]
-    print(f"{i+1} - {a} - {b}")
-
-print("\n")
-
-sort_deck_dict = {k: v for k, v in sorted(deck_dict.items(), key=lambda item: item[1])}
-deck_list = [i for i in sort_deck_dict.items()]
-
-for i in range(4,9):
-    a, b = deck_list[-1-i]
-    print(f"{i-3} - {a} - {b}")
-
-print("\n")
-
-for i,u in sorted(asc_dict.items()):
-    print(f"{i} - {u}")
-"""
-#----------------------------------------  
-    
-def get_data(address):
+def get_data(address,stat):
     run_path = Path(address)
+    temp_dic = {}
 
     for path in run_path.glob("*.run"):
         with path.open("r") as f:
             data = json.load(f)
-    
-    return data
 
-
-def get_stat(dic,stat):
-    if stat in dic:
-        dic[stat] += 1
-    else:
-        dic[stat] = 1
+        #set_stat(temp_dic, data[stat])
     
-    return dic
-  
-        
-def set_stat(file, stat): 
-    stat_dic = {}
+    print(data["relics"])
+
+    return temp_dic
+
+def print_data():
+    #final_dic = get_data(r"D:\Steam\steamapps\common\SlayTheSpire\runs\DEFECT","ascension_level")
+    final_dic = get_data(r'/Users/lloyd.bjornstedt/Library/Application Support/Steam/steamapps/common/SlayTheSpire/SlayTheSpire.app/Contents/Resources/runs/DEFECT',"relics")
+    
+    #for key,item in final_dic.items():     
+        #print(f"{key} - {item}")
+
+def main():
+    print_data()
+    
+
+if __name__ == "__main__":
+    #"ascension_level"
+    #"relics"
+    #main()
+    pass
+
+def counter2(data):
+    temp = []
     
     try:
-        for i in file[stat]:
-            stat_dic[i] = get_stat(stat_dic,stat)
+        temp += data
 
-    except TypeError: 
-        stat_dic += get_stat(stat_dic,stat)
+    except TypeError:
+        temp.append(data)    
     
-    return stat_dic
- 
-fil = get_data('/Users/lloyd.bjornstedt/Library/Application Support/Steam/steamapps/common/SlayTheSpire/SlayTheSpire.app/Contents/Resources/runs/DEFECT')    
-x = set_stat(fil,"relics")
-print(x)
+    return temp
+
+def collector(address):
+    run_path = Path(address)
+    temp = []
+
+    for path in run_path.glob("*.run"):
+        with path.open("r") as f:
+            data = json.load(f)
+            
+            #temp += counter2(data["ascension_level"])
+            temp += counter2(data["relics"])
+
+    
+    print((temp))
+    print(len(temp))
+    
+namn = r'/Users/lloyd.bjornstedt/Library/Application Support/Steam/steamapps/common/SlayTheSpire/SlayTheSpire.app/Contents/Resources/runs/DEFECT'  
+collector(namn)    
+    
+
 
 #----------------------------------------  
     
