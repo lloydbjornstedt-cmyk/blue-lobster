@@ -33,84 +33,39 @@ for path in run_path.glob("*.run"):
 #---------------------------------------- 
 
 
-def counter(dic,item):
-    try:
-        dic[item] += 1
+#"ascension_level"
+#"relics"
 
-    except KeyError:
-        dic[item] = 1
-    
-    return dic
-          
-def set_stat(dic,item): 
-    try:
-        for i in item:
-            counter(dic,i)
-
-    except TypeError:
-        counter(dic,item)
- 
-
-def get_data(address,stat):
-    run_path = Path(address)
-    temp_dic = {}
-
-    for path in run_path.glob("*.run"):
-        with path.open("r") as f:
-            data = json.load(f)
-
-        #set_stat(temp_dic, data[stat])
-    
-    print(data["relics"])
-
-    return temp_dic
-
-def print_data():
-    #final_dic = get_data(r"D:\Steam\steamapps\common\SlayTheSpire\runs\DEFECT","ascension_level")
-    final_dic = get_data(r'/Users/lloyd.bjornstedt/Library/Application Support/Steam/steamapps/common/SlayTheSpire/SlayTheSpire.app/Contents/Resources/runs/DEFECT',"relics")
-    
-    #for key,item in final_dic.items():     
-        #print(f"{key} - {item}")
-
-def main():
-    print_data()
-    
-
-if __name__ == "__main__":
-    #"ascension_level"
-    #"relics"
-    #main()
-    pass
-
-def counter2(data):
-    temp = []
-    
-    try:
-        temp += data
-
-    except TypeError:
-        temp.append(data)    
-    
-    return temp
-
-def collector(address):
-    run_path = Path(address)
-    temp = []
-
-    for path in run_path.glob("*.run"):
-        with path.open("r") as f:
-            data = json.load(f)
-            
-            #temp += counter2(data["ascension_level"])
-            temp += counter2(data["relics"])
-
-    
-    print((temp))
-    print(len(temp))
     
 namn = r'/Users/lloyd.bjornstedt/Library/Application Support/Steam/steamapps/common/SlayTheSpire/SlayTheSpire.app/Contents/Resources/runs/DEFECT'  
-collector(namn)    
+namn2 = '/Users/lloyd.bjornstedt/Library/Application Support/Steam/steamapps/common/SlayTheSpire/SlayTheSpire.app/Contents/Resources/runs/DEFECT/1773832369.run'
+namn3 = '/Users/lloyd.bjornstedt/Library/Application Support/Steam/steamapps/common/SlayTheSpire/SlayTheSpire.app/Contents/Resources/runs/DEFECT/1775638853.run'
+
+
+def get_json(address):
+    path = Path(address)
     
+    with path.open("r") as f:
+        data = json.load(f)
+    
+    return data
+
+
+def set_json(file, stat):    
+    
+    if file[stat] is list:
+        return file[stat]
+    
+    else:
+        temp = []
+        temp.append(file[stat])
+        return temp
+
+a = get_json(namn2)
+b = set_json(a,"relics")
+#b = set_json(a,"ascension_level")
+print(b)
+
 
 
 #----------------------------------------  
